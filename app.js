@@ -6,10 +6,26 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var swig = require('swig');
 
+var env = process.env.NODE_ENV || 'development'
+var config = require('./config')[env]
+
+console.log(config.greeting);
+
+var mongoose = require('mongoose');
+mongoose.connect(config.mongoUrl);
+
+
+var mongo_express = require('mongo-express/lib/middleware')
+
+
+
+
 var routes = require('./routes/index');
 var users = require('./routes/users');
 
 var app = express();
+
+app.use('/mongo_express', mongo_express(config.mongo_express_config))
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
