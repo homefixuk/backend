@@ -7,7 +7,9 @@
 * Deploy Node Server
 
     `docker build -t nshah/node .`
+    
     `docker run -d --name dex1 -p 3000 --link mongo:mongo -e "NODE_ENV=DEV" nshah/node`
+    
     `docker run -d --name dex2 -p 3000 --link mongo:mongo -e "NODE_ENV=INT" nshah/node`
     
 * Deploy Nginx
