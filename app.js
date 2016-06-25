@@ -1,50 +1,48 @@
-var express = require('express');
-var path = require('path');
-var favicon = require('serve-favicon');
-var logger = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
-var swig = require('swig');
-
-var env = process.env.NODE_ENV || 'development'
+var env = process.env.NODE_ENV || 'dev'
 var config = require('./config')[env]
 
-console.log(config.greeting);
+var express = require('express');
+var app = express();
 
 var mongoose = require('mongoose');
 mongoose.connect(config.mongoUrl);
-
-
 var mongo_express = require('mongo-express/lib/middleware')
-
-
-
-
-var routes = require('./routes/index');
-var users = require('./routes/users');
-
-var app = express();
-
 app.use('/mongo_express', mongo_express(config.mongo_express_config))
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
+var path = require('path');
+app.use(express.static(path.join(__dirname, 'public')));
 
+var cookieParser = require('cookie-parser');
+var bodyParser = require('body-parser');
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(cookieParser());
+
+var flash = require('connect-flash');
+app.use(flash());
+
+var swig = require('swig');
+app.set('views', path.join(__dirname, 'views'));
 app.engine('html', swig.renderFile);
 app.set('view engine', 'html');
 app.set('view cache', false);
 swig.setDefaults({ cache: false });
 
-// uncomment after placing your favicon in /public
+var passport = require('passport');
+var expressSession = require('express-session');
+app.use(expressSession({secret: 'mySecretKey'}));
+app.use(passport.initialize());
+app.use(passport.session());
+var initPassport = require('./passport/init');
+initPassport(passport);
+
+var favicon = require('serve-favicon');
+var logger = require('morgan');
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
 
+var routes = require('./routes/index')(passport);
 app.use('/', routes);
-app.use('/users', users);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -53,11 +51,9 @@ app.use(function(req, res, next) {
   next(err);
 });
 
-// error handlers
-
 // development error handler
 // will print stacktrace
-if (app.get('env') === 'development') {
+if (app.get('env') === 'dev') {
   app.use(function(err, req, res, next) {
     res.status(err.status || 500);
     res.render('error', {
