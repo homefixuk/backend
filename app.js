@@ -42,7 +42,9 @@ app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
 
 var routes = require('./routes/index')(passport);
+var tradesman = require('./routes/tradesman/index')(passport);
 app.use('/', routes);
+app.use('/tradesman',tradesman);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -73,5 +75,8 @@ app.use(function(err, req, res, next) {
   });
 });
 
+app.listen(3000, function () {
+  console.log('Example app listening on port 3000!');
+});
 
-module.exports = app;
+//module.exports = app;
