@@ -57,19 +57,12 @@ module.exports = function(passport) {
             }
         });
     });
-    router.post('/login', passport.authenticate('login', {
-        successRedirect: '/home',
-        failureRedirect: '/',
-        failureFlash: true
-    }));
-    router.get('/home', isAuthenticated, function(req, res) {
-        res.render('home', {
-            user: req.user
-        });
-    });
-    router.post('/signout', function(req, res) {
-        req.logout();
-        res.redirect('/');
+    router.post('/login', passport.authenticate('local', {
+        failureRedirect: '/failure'
+    }), function(req, res) {
+        res.send({
+            messahe: "Logged In"
+        })
     });
     return router;
 }
