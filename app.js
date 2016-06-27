@@ -1,5 +1,9 @@
 var env = process.env.NODE_ENV || 'dev'
 var config = require('./config')[env]
+
+console.log("ENV:",env,congif);
+console.log("ENV:",env,congif);
+
 var express = require('express');
 var app = express();
 var mongoose = require('mongoose');

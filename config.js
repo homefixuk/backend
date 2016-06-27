@@ -57,7 +57,7 @@ config['dev'] = {
     }
 }
 
-config['prod'] = {
+config['int'] = {
     mongoUrl: 'mongodb://mongo/homefix',
     mongo_express_config: {
         mongodb: {
