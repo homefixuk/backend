@@ -59,7 +59,7 @@ if(env === 'dev') {
     app.use(function(err, req, res, next) {
         console.log("Dev Error Handler", err);
         res.status(err.status || 500);
-        res.status(500).json({
+        res.json({
             message: "Error",
             errorMessage: err.message,
             error: err
@@ -71,9 +71,9 @@ if(env === 'dev') {
     app.use(function(err, req, res, next) {
         console.log("Prod Error Handler", err);
         res.status(err.status || 500);
-        res.render('error', {
+        res.json({
             message: "Error",
-            error: err.message
+            errorMessage: err.message
         });
     });
 }

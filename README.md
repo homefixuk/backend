@@ -14,4 +14,4 @@
     
 * Deploy Nginx
 
-    `docker run -d -p 80:80 --link dex1:dex1,dex2:dex2 --name nginx nshah/nginx`
+    `docker run -d -p 80:80 --link dex1:dex1 --link dex2:dex2  --name nginx nshah/nginx`
