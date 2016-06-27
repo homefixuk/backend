@@ -26,19 +26,11 @@ swig.setDefaults({
     cache: false
 });
 var passport = require('passport');
-var expressSession = require('express-session');
-app.use(expressSession({
-    secret: 'mySecretKey',
-    resave: false,
-    saveUninitialized: true,
-    cookie: {
-        secure: true
-    }
-}));
 app.use(passport.initialize());
-app.use(passport.session());
+
 var initPassport = require('./passport/init');
 initPassport(passport);
+
 var favicon = require('serve-favicon');
 var logger = require('morgan');
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));

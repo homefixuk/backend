@@ -17,7 +17,7 @@ module.exports = function () {
             if (err) {
                 res.json({message: "Could not create new client", error: err});
             }
-            res.json({message: "New API Key created"});
+            res.json({message: "New API Client created"});
         })
     });
 
