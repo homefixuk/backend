@@ -8,7 +8,7 @@ var app = express();
 var mongoose = require('mongoose');
 mongoose.connect(config.mongoUrl);
 var mongo_express = require('mongo-express/lib/middleware')
-app.use('/mongo_express', mongo_express(config.mongo_express_config))
+app.use('mongo_express', mongo_express(config.mongo_express_config))
 var path = require('path');
 app.use(express.static(path.join(__dirname, 'public')));
 var cookieParser = require('cookie-parser');
