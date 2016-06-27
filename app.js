@@ -43,10 +43,15 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
-var routes = require('./routes/index')(passport);
-var tradesman = require('./routes/tradesman/index')(passport);
-app.use('/', routes);
+
+var index = require('./routes/index')(passport);
+var tradesman = require('./routes/tradesman/tradesman')(passport);
+var client = require('./routes/client/client')(passport);
+app.use('/', index);
 app.use('/tradesman', tradesman);
+app.use('/clients', client);
+
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
     var err = new Error('Not Found');

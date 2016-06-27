@@ -8,7 +8,7 @@ var isAuthenticated = function(req, res, next) {
 }
 module.exports = function(passport) {
     router.post('/signup', passport.authenticate('localapikey', {
-        failureRedirect: '/client/unauthorized',
+        failureRedirect: '/clients/unauthorized',
         failureFlash: true
     }), function(req, res) {
         User.findOne({
