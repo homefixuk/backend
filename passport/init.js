@@ -1,5 +1,4 @@
 var login = require('./login');
-var signup = require('./signup');
 var apikey = require('./apikey');
 var User = require('../models/user');
 
@@ -18,7 +17,6 @@ module.exports = function(passport){
     });
 
     login(passport);
-    signup(passport);
     apikey(passport);
 
 }

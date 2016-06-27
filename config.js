@@ -1,13 +1,13 @@
 var config = [];
 
 mongo = {
-    db:       'db',
+    db:       'localdb',
     host:     'localhost',
-    password: 'pass',
+    password: '',
     port:     27017,
     ssl:      false,
-    url:      'mongodb://localhost:27017/db',
-    username: 'admin',
+    url:      'mongodb://localhost:27017/localdb',
+    username: '',
 };
 
 config['dev'] = {

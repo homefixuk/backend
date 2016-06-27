@@ -4,12 +4,11 @@ var Client = require('../models/client');
 
 module.exports = function(passport){
     passport.use(new LocalApiStrategy(
-        function(apikey, done) {
-
+        function(apikey, done) {            
             process.nextTick(function () {
                 Client.findOne({ 'apiKey' :  apikey },
                     function(err, client) {
-
+                    
                         if (err)
                             return done(err);
 

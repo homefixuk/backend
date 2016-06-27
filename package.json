@@ -15,6 +15,7 @@
     "express-session": "^1.13.0",
     "mongo-express": "^0.30.59",
     "mongoose": "^4.5.1",
+    "mongoose-validator": "^1.2.5",
     "morgan": "~1.6.1",
     "passport": "^0.3.2",
     "passport-local": "^1.0.0",

@@ -1,7 +1,7 @@
 var mongoose = require('mongoose');
 
 module.exports = mongoose.model('Tradesman',{
-    userId: {type:mongoose.Schema.Types.ObjectId, ref:'User'},
+    user: {type:mongoose.Schema.Types.ObjectId, ref:'User'},
     type:String,
     rating:String,
     numberOfReviews:String,
