@@ -1,7 +1,7 @@
 var LocalStrategy = require('passport-local').Strategy;
 var User = require('../models/user');
 module.exports = function(passport) {
-    passport.use(new LocalStrategy(function(username, password, done) {
+    passport.use(new LocalStrategy({usernameField: 'email'}, function(username, password, done) {
         console.log("Passport Login 1:", username, password, done);
         User.findOne({
             'email': username
