@@ -11,7 +11,6 @@ module.exports = function (passport) {
     router.post('/login', passport.authenticate('local', {
         failureRedirect: '/login'
     }), function(req, res) {
-
         var token = jwt.sign(req.user, "secret", {
             expiresIn: 10080
         });

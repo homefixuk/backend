@@ -10,8 +10,8 @@ module.exports = function(passport){
                         if (err)
                             return done(err);
                         if (!client){
-                            console.log('client Not Found with username '+username);
-                            return done(null, false, req.flash('message', 'User Not found.'));
+                            console.log('Invalid API Key');
+                            return done(null, false);
                         }
                         return done(null, client);
                     }

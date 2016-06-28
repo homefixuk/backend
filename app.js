@@ -39,14 +39,12 @@ var logger = require('morgan');
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
 
-
-var signup = require('./routes/tradesman/signup')(passport);
-var login = require('./routes/tradesman/login')(passport);
+var signup = require('./routes/signup')(passport);
+var login = require('./routes/login')(passport);
 var profile = require('./routes/tradesman/profile')(passport);
 var client = require('./routes/client/client')(passport);
-
-app.use('/tradesman', signup);
-app.use('/tradesman', login);
+app.use(signup);
+app.use(login);
 app.use('/tradesman', profile);
 app.use('/clients', client);
 

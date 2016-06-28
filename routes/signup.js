@@ -1,11 +1,11 @@
 var express = require('express');
 var router = express.Router();
-var User = require('../../models/user');
-var Tradesman = require('../../models/tradesman');
+var User = require('../models/user');
+var Tradesman = require('../models/tradesman');
 
 
 module.exports = function (passport) {
-    
+
     router.post('/signup', passport.authenticate('localapikey', {
         failureRedirect: '/clients/unauthorized'
     }), function (req, res) {
@@ -18,7 +18,6 @@ module.exports = function (passport) {
                     error: err
                 })
             } else if (user) {
-                console.log(': ' + username);
                 res.status(500).json({
                     message: "User already exists with email",
                 })
@@ -31,26 +30,32 @@ module.exports = function (passport) {
                 newUser.save(function (err, user) {
                     if (err) {
                         res.status(500).json({
-                            message: "Error creating new Tradesman",
+                            message: "Error creating new User",
                             error: err
                         })
                     } else {
-                        var tradesman = new Tradesman();
-                        console.log(user);
-                        tradesman.user = user;
-                        tradesman.save(function (err, tradesman) {
-                            if (err) {
-                                res.status(500).json({
-                                    message: "Error creating new Tradesman",
-                                    error: err
-                                })
-                            } else {
-                                console.log(tradesman);
-                                res.json({
-                                    message: "New Tradesman created"
-                                })
-                            }
-                        })
+                        if(user.role == 'Tradesman') {
+                            var tradesman = new Tradesman();
+                            console.log(user);
+                            tradesman.user = user;
+                            tradesman.save(function (err, tradesman) {
+                                if (err) {
+                                    res.status(500).json({
+                                        message: "Error creating new Tradesman",
+                                        error: err
+                                    })
+                                } else {
+                                    //console.log(tradesman);
+                                    res.json({
+                                        message: "New Tradesman created"
+                                    })
+                                }
+                            })
+                        }else{
+                            res.json({
+                                message: "New Customer Created"
+                            });
+                        }
                     }
                 })
             }

@@ -11,7 +11,7 @@ var emailValidator = [
 
 var passwordValidator = [validate({
     validator: 'isLength',
-    arguments: [8, 15],
+    arguments: [6, 15],
     message: 'Password should be between {ARGS[0]} and {ARGS[1]} characters'
 })]
 
@@ -20,10 +20,10 @@ var userSchema = new Schema({
     lastName: {type: String, required: true},
     email: {type: String, required: true, validate: emailValidator},
     password: {type: String, required: true, validate: passwordValidator},
+    role: {type: String, enum:['TRADE','CUST'], default:'CUST'},
     mobile: String,
     homeAddress: {type: mongoose.Schema.Types.ObjectId, ref: 'Address'},
     billingAddress: {type: mongoose.Schema.Types.ObjectId, ref: 'Address'},
-    role: String,
     priority: String,
     totalSpent: Number
 });
