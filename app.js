@@ -43,6 +43,7 @@ var signup = require('./routes/signup')(passport);
 var login = require('./routes/login')(passport);
 var profile = require('./routes/tradesman/profile')(passport);
 var client = require('./routes/client/client')(passport);
+
 app.use(signup);
 app.use(login);
 app.use('/tradesman', profile);

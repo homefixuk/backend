@@ -27,6 +27,9 @@ module.exports = function (passport) {
                 newUser.lastName = req.body.lastName;
                 newUser.email = req.body.email;
                 newUser.password = req.body.password;
+                if(req.body.role){
+                    newUser.role = req.body.role
+                }
                 newUser.save(function (err, user) {
                     if (err) {
                         res.status(500).json({
@@ -34,7 +37,7 @@ module.exports = function (passport) {
                             error: err
                         })
                     } else {
-                        if(user.role == 'Tradesman') {
+                        if(user.role == 'TRADE') {
                             var tradesman = new Tradesman();
                             console.log(user);
                             tradesman.user = user;

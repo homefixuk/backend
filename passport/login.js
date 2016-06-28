@@ -8,7 +8,7 @@ module.exports = function(passport) {
         }, function(err, user) {
             if(err) return done(err);
             if(!user) {
-                console.log('User Not Found with username ' + username);
+                console.log('User not found with username ' + username);
                 return done(null, false);
             }
             if(password != user.password) {
