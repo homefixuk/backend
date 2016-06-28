@@ -7,7 +7,7 @@ var Tradesman = require('../models/tradesman');
 module.exports = function (passport) {
 
     router.post('/signup', passport.authenticate('localapikey', {
-        failureRedirect: '/clients/unauthorized'
+        failureRedirect: 'clients/unauthorized'
     }), function (req, res) {
         User.findOne({
             'email': req.body.email
