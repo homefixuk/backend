@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-var Client = require('../../models/client');
+var Client = require('../models/apiclient');
 var hat = require('hat');
 
 

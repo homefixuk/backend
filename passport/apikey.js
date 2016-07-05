@@ -1,5 +1,5 @@
 var LocalApiStrategy = require('passport-localapikey').Strategy;
-var Client = require('../models/client');
+var Client = require('../models/apiclient');
 
 module.exports = function(passport){
     passport.use(new LocalApiStrategy(

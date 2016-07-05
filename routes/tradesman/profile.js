@@ -5,7 +5,6 @@ var Tradesman = require('../../models/tradesman');
 
 
 module.exports = function (passport) {
-
     router.get('/me', passport.authenticate('jwt', {session: false}), function (req, res) {
         User.findOne({email: req.user.email}, function (err, user) {
             if (err) {

@@ -21,11 +21,6 @@ var userSchema = new Schema({
     email: {type: String, required: true, validate: emailValidator},
     password: {type: String, required: true, validate: passwordValidator},
     role: {type: String, enum:['TRADE','CUST'], default:'CUST'},
-    mobile: String,
-    homeAddress: {type: mongoose.Schema.Types.ObjectId, ref: 'Address'},
-    billingAddress: {type: mongoose.Schema.Types.ObjectId, ref: 'Address'},
-    priority: String,
-    totalSpent: Number
 });
 
 module.exports = mongoose.model('User', userSchema);
