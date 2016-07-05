@@ -39,14 +39,15 @@ var logger = require('morgan');
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
 
-var restify = require('./routes/restify');
+var client = require('./routes/apiclient');
 var signup = require('./routes/signup')(passport);
 var login = require('./routes/login')(passport);
-var client = require('./routes/apiclient')(passport);
+var restify = require('./routes/restify');
 
+app.use(client);
 app.use(signup);
 app.use(login);
-app.use('/clients', client);
+
 app.use(passport.authenticate('jwt', {session: false}), restify);
 
 
