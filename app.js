@@ -42,19 +42,13 @@ app.use(logger('dev'));
 var restify = require('./routes/restify');
 var signup = require('./routes/signup')(passport);
 var login = require('./routes/login')(passport);
-var profile = require('./routes/tradesman/profile')(passport);
 var client = require('./routes/apiclient')(passport);
-
 
 app.use(signup);
 app.use(login);
-app.use('/tradesman', profile);
 app.use('/clients', client);
 app.use(passport.authenticate('jwt', {session: false}), restify);
 
-app.get('/routes', function(req, res){
-  res.json({routes: app._router.stack});
-});
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

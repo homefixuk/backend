@@ -20,7 +20,7 @@ restify.serve(router,TradesmanLocation);
 restify.serve(router,TradesmanNotification);
 restify.serve(router,TradesmanReview);
 
-
+/*
 for (i = 0; i < router.stack.length; i++) { 
     var route = router.stack[i].route;
     if(typeof route != 'undefined'){
@@ -30,7 +30,7 @@ for (i = 0; i < router.stack.length; i++) {
         }
     }    
 }
-
+*/
 
 module.exports = router;
 
