@@ -39,14 +39,18 @@ var logger = require('morgan');
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
 
-var client = require('./routes/apiclient');
+var apiclient = require('./routes/apiclient');
 var signup = require('./routes/signup')(passport);
 var login = require('./routes/login')(passport);
 var restify = require('./routes/restify');
 
-app.use(client);
-app.use(signup);
+app.use(apiclient);
+app.use('/api/v1',signup);
 app.use(login);
+
+app.get('/unauthorized',function(req,res){
+    res.status(401).json('Client not Authorized to access API')
+})
 
 app.use(passport.authenticate('jwt', {session: false}), restify);
 
