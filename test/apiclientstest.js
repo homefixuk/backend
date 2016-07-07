@@ -18,9 +18,7 @@ describe('API Client Test', function () {
 
     before(function (done) {
         mongoose.connect(config.mongoUrl, function (err) {
-
             if (err) throw error;
-
             var apiclient = new ApiClient({'description': 'test-setup-client'});
             apiclient.save(function (err, newClient) {
                 if (err) {
@@ -28,24 +26,22 @@ describe('API Client Test', function () {
                 } else {
                     testClientId = newClient._id;
                     testClientApiKey = newClient.apiKey;
+                    done();
                 }
-            })
-
-            done();
-
+            });
+            
         });
-
     });
 
 
     describe('Get Client', function () {
         it('should get an existing client', function (done) {
-
+            
             request(url)
                 .get('/ApiClient/' + testClientId)
                 .end(function (err, res) {
                     if (err) {
-                        throw err;
+                        console.log('Error',err);
                     }
                     res.should.have.property('status', 200);
                     res.body.should.have.property('description', 'test-setup-client')
@@ -80,17 +76,18 @@ describe('API Client Test', function () {
 
         it('should return a new user', function (done) {
                 var user = {
-
+                    apikey: testClientApiKey
                 }
                 request(url)
                     .post('/signup')
                     .send(user)
                     .end(function (err, res) {
                         if (err) {
-                            console.log('Error',err);
+                            throw err;
                         }
-                        //res.should.have.property('status', 201);
-                        console.log('New User', res.statusCode, res.body, res.json);
+                        console.log('Response:',res.body)
+                        res.status.should.equal(302);
+                        res.header['location'].should.include('/unauthorized');                        
                         newUserId = res.body._id;
                         done();
                     })

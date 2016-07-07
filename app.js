@@ -64,6 +64,7 @@ app.use(function(req, res, next) {
 
 if(env === 'dev') {
     app.use(function(err, req, res, next) {
+        console.log('Returning an Error Reposne',err.status||500, err.message);
         res.status(err.status || 500);
         res.json({
             message: "Error Response",
@@ -75,6 +76,7 @@ if(env === 'dev') {
     // production error handler
     // no stacktraces leaked to user
     app.use(function(err, req, res, next) {
+        
         res.status(err.status || 500);
         res.json({
             message: "Error Response",

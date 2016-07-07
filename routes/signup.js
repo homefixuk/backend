@@ -43,13 +43,22 @@ module.exports = function (passport) {
                             tradesman.user = user;
                             tradesman.save(function (err, tradesman) {
                                 if (err) {
-                                    res.status(500).json({
-                                        message: "Error creating new Tradesman",
-                                        error: err
-                                    })
+                                     if (err.name == 'ValidationError') {
+                                         console.log('Setting ValidationError')
+                                        res.status(401).json({
+                                            message: "ValidationError creating new Tradesman",
+                                            error: err
+                                        });
+                                         
+                                     }else{
+                                        res.status(500).json({
+                                            message: "Error creating new Tradesman",
+                                            error: err
+                                        });
+                                     }
                                 } else {
                                     //console.log(tradesman);
-                                    res.json({
+                                    res.status(201).json({
                                         message: "New Tradesman created"
                                     })
                                 }
