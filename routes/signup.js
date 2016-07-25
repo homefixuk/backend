@@ -6,7 +6,7 @@ var Tradesman = require('../models/tradesman');
 
 module.exports = function (passport) {
 
-    router.post('/signup', passport.authenticate('localapikey', {
+    router.post('/user/signup', passport.authenticate('localapikey', {
         failureRedirect: '/unauthorized'
     }), function (req, res) {
         User.findOne({
@@ -28,8 +28,8 @@ module.exports = function (passport) {
                 newUser.lastName = req.query.lastName;
                 newUser.email = req.query.email;
                 newUser.password = req.query.password;
-                if(req.body.role){
-                    newUser.role = req.body.role
+                if(req.query.role){
+                    newUser.role = req.query.role
                 }
                 newUser.save(function (err, user) {
                     if (err) {

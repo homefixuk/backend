@@ -4,11 +4,11 @@ var jwt = require('jsonwebtoken');
 
 module.exports = function (passport) {
 
-    router.get('/login',function(req,res){
+    router.get('/user/login',function(req,res){
         res.status(403).json({message:"Please Login"});
     })
 
-    router.post('/login', passport.authenticate('local', {
+    router.post('/user/login', passport.authenticate('local', {
         failureRedirect: 'login'
     }), function(req, res) {
         var token = jwt.sign(req.user, "secret", {

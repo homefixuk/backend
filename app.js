@@ -42,18 +42,16 @@ app.use(logger('dev'));
 var apiclient = require('./routes/apiclient');
 var signup = require('./routes/signup')(passport);
 var login = require('./routes/login')(passport);
-var restify = require('./routes/restify');
+var tradesman = require('./routes/tradesman');
 
 app.use(apiclient);
-app.use('/api/v1',signup);
+app.use(signup);
 app.use(login);
+app.use(passport.authenticate('jwt'),tradesman);
 
 app.get('/unauthorized',function(req,res){
     res.status(401).json('Client not Authorized to access API')
-})
-
-app.use(passport.authenticate('jwt', {session: false}), restify);
-
+});
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -85,7 +83,6 @@ if(env === 'dev') {
         });
     });
 }
-
 
 app.listen(3000, function() {
     console.log('Example app listening on port 3000!');
