@@ -107,8 +107,8 @@ router.patch('/tradesman/location', function(req, res, next) {
             if(tradesman) {
                 
                 var geoPoint = {};
-                geoPoint.lat = req.query.lat;
-                geoPoint.lng = req.query.lng;
+                geoPoint.lat = req.query.latitude;
+                geoPoint.lng = req.query.longitude;
                 var location = new TradesmanLocation({
                     tradesman: tradesman,
                     geoPoint: geoPoint,

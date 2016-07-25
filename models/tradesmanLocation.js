@@ -14,11 +14,11 @@ module.exports = mongoose.model('TradesmanLocation', {
         default: false
     },
     geoPoint: {
-        lat: {
+        latitude: {
             type: String,
             required: true
         },
-        lng: {
+        longitude: {
             type: String,
             required: true
         }
