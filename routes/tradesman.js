@@ -57,7 +57,7 @@ router.patch('/tradesman/me', function(req, res, next) {
     }, req.query, function(err, tradesman) {
         if(err) {
             var newErr = new Error('Error encountered while updating the Tradesman');
-            newErr.error = err
+            newErr.error = err;
             newErr.status = 500;
             next(newErr);
         } else {
@@ -118,25 +118,27 @@ router.patch('/tradesman/location', function(req, res, next) {
                 location.save(function(err, location) {
                     if(err) {
                         var newErr = new Error('Error updating Tradesman Location');
-                        newErr.error = err
+                        newErr.error = err;
                         newErr.status = 500;
                         next(newErr);
                     } else {
-                        tradesman.tradesmanLocation = location;
+                        console.log('Setting saved location');
+                        tradesman.tradesmanLocation = location._id;
                         tradesman.save(function(err,resp){
                             if(err){
                                 var newErr = new Error('Error updating current location for this Tradesman');
-                                newErr.error = err
+                                newErr.error = err;
                                 newErr.status = 500;
                                 next(newErr);
                             }else{
-                                res.send(location);        
+                                res.send(resp);
                             }
                         });
+
                     }
                 });
             } else {
-                var err = new Error('Requested Treadesman could not be found');
+                var err = new Error('Requested Tradesman could not be found');
                 err.status = 500;
                 next(err);
             }

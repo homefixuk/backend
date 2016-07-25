@@ -4,8 +4,6 @@ var User = require('../models/user');
 
 var Tradesman = require('../models/tradesman');
 var TradesmanPrivate = require('../models/tradesmanPrivate');
-var TradesmanLocation = require('../models/tradesmanLocation');
-var TradesmanReview = require('../models/tradesmanReview');
 
 module.exports = function (passport) {
 
