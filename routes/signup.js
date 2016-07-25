@@ -1,8 +1,11 @@
 var express = require('express');
 var router = express.Router();
 var User = require('../models/user');
-var Tradesman = require('../models/tradesman');
 
+var Tradesman = require('../models/tradesman');
+var TradesmanPrivate = require('../models/tradesmanPrivate');
+var TradesmanLocation = require('../models/tradesmanLocation');
+var TradesmanReview = require('../models/tradesmanReview');
 
 module.exports = function (passport) {
 
@@ -59,9 +62,9 @@ module.exports = function (passport) {
                                      }
                                 } else {
                                     //console.log(tradesman);
-                                    res.status(201).json({
-                                        message: "New Tradesman created"
-                                    })
+                                    var tP = new TradesmanPrivate({tradesman: tradesman});
+                                    tP.save();
+                                    res.send(tradesman);
                                 }
                             })
                         }else{
