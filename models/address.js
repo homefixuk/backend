@@ -1,4 +1,5 @@
 var mongoose = require('mongoose');
+var schema = require('./schema/address.json')
 
 module.exports = mongoose.model('Address', {
     address: String,

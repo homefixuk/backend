@@ -10,7 +10,7 @@ module.exports = function (passport) {
         failureRedirect: '/unauthorized'
     }), function (req, res) {
         User.findOne({
-            'email': req.body.email
+            'email': req.query.email
         }, function (err, user) {
             if (err) {
                 res.status(500).json({
@@ -22,11 +22,12 @@ module.exports = function (passport) {
                     message: "User already exists with email",
                 })
             } else {
+                console.log('Creating New User',req.params);
                 var newUser = new User();
-                newUser.firstName = req.body.firstName;
-                newUser.lastName = req.body.lastName;
-                newUser.email = req.body.email;
-                newUser.password = req.body.password;
+                newUser.firstName = req.query.firstName;
+                newUser.lastName = req.query.lastName;
+                newUser.email = req.query.email;
+                newUser.password = req.query.password;
                 if(req.body.role){
                     newUser.role = req.body.role
                 }

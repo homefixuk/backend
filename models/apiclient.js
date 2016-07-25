@@ -13,4 +13,4 @@ schema.pre('save', function(next) {
     next();
 });
 
-module.exports = mongoose.model('ApiClient', schema);
+module.exports = mongoose.model('ApiClient',schema );

@@ -66,6 +66,7 @@ if(env === 'dev') {
     app.use(function(err, req, res, next) {
         console.log('Returning an Error Reposne',err.status||500, err.message);
         res.status(err.status || 500);
+        
         res.json({
             message: "Error Response",
             errorMessage: err.message,
