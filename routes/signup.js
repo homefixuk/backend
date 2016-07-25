@@ -12,6 +12,9 @@ module.exports = function (passport) {
     router.post('/user/signup', passport.authenticate('localapikey', {
         failureRedirect: '/unauthorized'
     }), function (req, res) {
+        
+        console.log('Express Query Object',req.query);
+        
         User.findOne({
             'email': req.query.email
         }, function (err, user) {
@@ -25,7 +28,7 @@ module.exports = function (passport) {
                     message: "User already exists with email",
                 })
             } else {
-                console.log('Creating New User',req.params);
+                //console.log('Creating New User',req.params);
                 var newUser = new User();
                 newUser.firstName = req.query.firstName;
                 newUser.lastName = req.query.lastName;
@@ -42,13 +45,13 @@ module.exports = function (passport) {
                         })
                     } else {
                         if(user.role == 'TRADE') {
-                            var tradesman = new Tradesman();
-                            console.log(user);
+                            //console.log(user);
+                            var tradesman = new Tradesman();                            
                             tradesman.user = user;
                             tradesman.save(function (err, tradesman) {
                                 if (err) {
                                      if (err.name == 'ValidationError') {
-                                         console.log('Setting ValidationError')
+                                        //console.log('Setting ValidationError')
                                         res.status(401).json({
                                             message: "ValidationError creating new Tradesman",
                                             error: err

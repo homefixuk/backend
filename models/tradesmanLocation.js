@@ -18,7 +18,7 @@ module.exports = mongoose.model('TradesmanLocation', {
             type: String,
             required: true
         },
-        long: {
+        lng: {
             type: String,
             required: true
         }
