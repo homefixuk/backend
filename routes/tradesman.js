@@ -40,7 +40,7 @@ router.get('/tradesman/me/private', function(req, res, next) {
                         err.status = 500;
                         next(err);
                     } else {
-                        res.send(tradesmanPrivate);
+                        res.json({message:'Tradesman Details Updated'});
                     }
                 });
             } else {
@@ -84,7 +84,7 @@ router.patch('/tradesman/me/private', function(req, res, next) {
                         newErr.status = 500;
                         next(newErr);
                     } else {
-                        res.send(tradesmanPrivate)
+                        res.json({message:'Tradesman Private Details Updated'})
                     }
                 });
             } else {
@@ -131,7 +131,7 @@ router.patch('/tradesman/location', function(req, res, next) {
                                 newErr.status = 500;
                                 next(newErr);
                             }else{
-                                res.send(resp);
+                                res.json({message:'Tradesman Current Location Updated'})
                             }
                         });
 
