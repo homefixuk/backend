@@ -6,7 +6,7 @@ var TradesmanLocation = require('../models/tradesmanLocation');
 router.get('/tradesman/me', function(req, res, next) {
     Tradesman.findOne({
         user: req.user
-    }, function(err, tradesman) {
+    }).populate('tradesmanLocation').exec(function(err, tradesman) {
         if(err) {
             var err = new Error('Error encountered while requesting the Tradesman');
             err.status = 500;
@@ -40,7 +40,7 @@ router.get('/tradesman/me/private', function(req, res, next) {
                         err.status = 500;
                         next(err);
                     } else {
-                        res.send(tradesmanPrivate);
+                        res.json({message:'Tradesman Details Updated'});
                     }
                 });
             } else {
@@ -84,7 +84,7 @@ router.patch('/tradesman/me/private', function(req, res, next) {
                         newErr.status = 500;
                         next(newErr);
                     } else {
-                        res.send(tradesmanPrivate)
+                        res.json({message:'Tradesman Private Details Updated'})
                     }
                 });
             } else {
@@ -107,8 +107,8 @@ router.patch('/tradesman/location', function(req, res, next) {
             if(tradesman) {
                 
                 var geoPoint = {};
-                geoPoint.lat = req.query.latitude;
-                geoPoint.lng = req.query.longitude;
+                geoPoint.latitude = req.query.latitude;
+                geoPoint.longitude = req.query.longitude;
                 var location = new TradesmanLocation({
                     tradesman: tradesman,
                     geoPoint: geoPoint,
@@ -131,7 +131,7 @@ router.patch('/tradesman/location', function(req, res, next) {
                                 newErr.status = 500;
                                 next(newErr);
                             }else{
-                                res.send(resp);
+                                res.json({message:'Tradesman Current Location Updated'})
                             }
                         });
 
