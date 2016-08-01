@@ -3,7 +3,7 @@ module.exports = mongoose.model('Service', {
     tradesman: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Tradesman'
-    }
+    },
     problem: {
         type: String,
         required: true
