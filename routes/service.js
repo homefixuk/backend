@@ -73,6 +73,26 @@ router.post('/services', function (req, res, next) {
 
 });
 
+router.get('/services/:id', function (req, res, next) {
+    Service.find({_id:req.params.id}).exec(function (err, service) {
+        if (err) {
+            var newErr = new Error('Error encountered while getting Service.');
+            newErr.message = err.message;
+            newErr.status = 500;
+            next(newErr);
+        } else {
+            if (service) {
+                res.json(service);
+            } else {
+                var newErr = new Error('Could not get the requested Service');
+                newErr.status = 500;
+                next(newErr);
+            }
+        }
+
+    });
+});
+
 router.patch('/services/:id', function (req, res, next) {
     Service.findOneAndUpdate({
         _id: req.params.id
