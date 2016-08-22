@@ -5,5 +5,5 @@ module.exports = mongoose.model('Timeslot', {
     type: {type: String, enum: ['availability', 'break', 'service', 'own_job'], default: 'availability'},
     start: { type : Number, default: Date.now },
     end: { type : Number, default: Date.now },
-    length: {type: Number}
+    slotLength: {type: Number}
 });

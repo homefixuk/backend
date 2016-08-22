@@ -43,11 +43,13 @@ var apiclient = require('./routes/apiclient');
 var signup = require('./routes/signup')(passport);
 var login = require('./routes/login')(passport);
 var tradesman = require('./routes/tradesman');
+var services = require('./routes/service');
 
 app.use(apiclient);
 app.use(signup);
 app.use(login);
 app.use(passport.authenticate('jwt'),tradesman);
+app.use(passport.authenticate('jwt'),services);
 
 app.get('/unauthorized',function(req,res){
     res.status(401).json('Client not Authorized to access API')
