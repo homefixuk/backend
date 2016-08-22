@@ -80,7 +80,7 @@ router.patch('/tradesman/me/private', function(req, res, next) {
                 }, req.query, function(err, tradesmanPrivate) {
                     if(err) {
                         var newErr = new Error('Private Details could not be updated for this Tradesman');
-                        newErr.error = err
+                        newErr.error = err;
                         newErr.status = 500;
                         next(newErr);
                     } else {
