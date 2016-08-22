@@ -97,7 +97,7 @@ router.post('/tradesman/timeslots', function(req, res, next) {
 });
 
 router.patch('/tradesman/timeslots/:id', function(req, res, next) {
-    Timeslots.findOneAndUpdate({_id:req.params.id},req.query, function(err,tslot){
+    Timeslot.findOneAndUpdate({_id:req.params.id},req.query, function(err,tslot){
         if(err){
             var newErr = new Error('Error encountered while updating the Timeslot');
             newErr.error = err;
@@ -110,7 +110,8 @@ router.patch('/tradesman/timeslots/:id', function(req, res, next) {
 });
 
 router.delete('/tradesman/timeslots/:id', function(req, res, next) {
-    Timeslots.find({_id:req.params.id}).remove().exec(function(err){
+
+    Timeslot.find({_id:req.params.id}).remove().exec(function(err){
         if(err){
             var newErr = new Error('Error deleting Timeslot');
             newErr.error = err;

@@ -3,6 +3,7 @@ var router = express.Router();
 var Tradesman = require('../models/tradesman');
 var Service = require('../models/service');
 var Problem = require('../models/problem');
+var Part = require('../models/part');
 
 router.get('/services', function (req, res, next) {
     Service.find({}).exec(function (err, services) {
@@ -21,7 +22,6 @@ router.get('/services', function (req, res, next) {
                 next(newErr);
             }
         }
-
 
     });
 });
@@ -54,7 +54,7 @@ router.post('/services', function (req, res, next) {
                                 newErr.status = 500;
                                 next(newErr);
                             } else {
-                                res.json({success: true, message: 'New Service Created', service: service._id});
+                                res.json({ success: true, message: 'New Service Created', service: service._id });
                             }
                         });
                     })
@@ -73,7 +73,6 @@ router.post('/services', function (req, res, next) {
 
 });
 
-
 router.patch('/services/:id', function (req, res, next) {
     Service.findOneAndUpdate({
         _id: req.params.id
@@ -89,7 +88,6 @@ router.patch('/services/:id', function (req, res, next) {
     });
 });
 
-
 router.get('/services/:id/problem', function (req, res, next) {
     Service.findOne({
         _id: req.params.id
@@ -100,21 +98,27 @@ router.get('/services/:id/problem', function (req, res, next) {
             nErr.status = 500;
             next(nErr);
         } else {
-            Problem.findOne({_id: service.problem}).exec(function (err, problem) {
-                if (err) {
-                    var nErr = new Error('Error getting Problem for requested Service');
-                    nErr.err = err;
-                    nErr.status = 500;
-                    next(nErr);
-                } else {
-                    res.json(problem);
-                }
-            })
+            if (service) {
+                Problem.findOne({ _id: service.problem }).exec(function (err, problem) {
+                    if (err) {
+                        var nErr = new Error('Error getting Problem for requested Service');
+                        nErr.err = err;
+                        nErr.status = 500;
+                        next(nErr);
+                    } else {
+                        res.json(problem);
+                    }
+                })
+            } else {
+                var nErr = new Error('Requested Service could not be found');
+                nErr.status = 500;
+                next(nErr);
+            }
         }
     });
 });
 
-router.post('/services/:id/problem/parts', function (req, res, next) {
+router.post('/services/:id/problem/parts/:id', function (req, res, next) {
 
     Service.findOne({
         _id: req.params.id
@@ -125,31 +129,54 @@ router.post('/services/:id/problem/parts', function (req, res, next) {
             nErr.status = 500;
             next(nErr);
         } else {
-            Problem.findOne({_id: service.problem}).exec(function (err, problem) {
-                if (err) {
-                    var nErr = new Error('Error getting Problem for requested Service');
-                    nErr.err = err;
-                    nErr.status = 500;
-                    next(nErr);
-                } else {
-                    problem.potentialParts.push(req.query.parts);
-                    problem.save(function(err,problem){
-                        if(err){
-                            var nErr = new Error('Error adding parts to Problem');
-                            nErr.err = err;
-                            nErr.status = 500;
-                            next(nErr);
+            if (service) {
+                Problem.findOne({ _id: service.problem }).exec(function (err, problem) {
+                    if (err) {
+                        var nErr = new Error('Error getting Problem for requested Service');
+                        nErr.err = err;
+                        nErr.status = 500;
+                        next(nErr);
+                    } else {
 
-                        }else{
-                            res.json({success: true, message: 'Parts added to the problem', problem: problem._id});
-                        }
-                    });
-                }
-            })
+                        Part.findOne({ _id: req.params.id }).exec(function (err, part) {
+                            if (err) {
+                                var nErr = new Error('Error getting requested Part.');
+                                nErr.status = 500;
+                                next(nErr);
+                            } else {
+                                if (part) {
+                                    problem.potentialParts.push(part);
+                                    problem.save(function (err, problem) {
+                                        if (err) {
+                                            var nErr = new Error('Error adding parts to Problem');
+                                            nErr.err = err;
+                                            nErr.status = 500;
+                                            next(nErr);
 
+                                        } else {
+                                            res.json({
+                                                success: true,
+                                                message: 'Parts added to the problem',
+                                                problem: problem._id
+                                            });
+                                        }
+                                    });
+                                } else {
+                                    var nErr = new Error('Requested Part could not be found');
+                                    nErr.status = 500;
+                                    next(nErr);
+                                }
+                            }
+                        });
+                    }
+                });
+            } else {
+                var nErr = new Error('Requested Service could not be found');
+                nErr.status = 500;
+                next(nErr);
+            }
         }
     });
 });
-
 
 module.exports = router;
