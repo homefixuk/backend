@@ -40,7 +40,7 @@ router.get('/tradesman/me/private', function(req, res, next) {
                         err.status = 500;
                         next(err);
                     } else {
-                        res.json({message:'Tradesman Details Updated'});
+                        res.json(tradesmanPrivate);
                     }
                 });
             } else {
