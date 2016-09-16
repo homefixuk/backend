@@ -5,7 +5,8 @@ var TradesmanPrivate = require('../models/tradesmanPrivate');
 var TradesmanLocation = require('../models/tradesmanLocation');
 router.get('/tradesman/me', function (req, res, next) {
     Tradesman.findOne({
-        user: req.user })
+        user: req.user
+    })
         .populate('currentLocation')
         .populate('user')
         .exec(function (err, tradesman) {
@@ -63,7 +64,17 @@ router.patch('/tradesman/me', function (req, res, next) {
             newErr.status = 500;
             next(newErr);
         } else {
-            res.send(tradesman)
+
+            Tradesman.findOne({ user: req.user })
+                .populate('currentLocation')
+                .populate('user')
+                .exec(function (err, t2) {
+                    if (err) {
+                        next(err)
+                    }
+                    res.send(t2)
+                });
+
         }
     });
 });
