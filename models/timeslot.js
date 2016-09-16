@@ -5,5 +5,6 @@ module.exports = mongoose.model('Timeslot', {
     type: {type: String, enum: ['availability', 'break', 'service', 'own_job'], default: 'availability'},
     start: { type : Number, required:true },
     end: { type : Number, required:true },
-    slotLength: {type: Number, required:true}
+    slotLength: {type: Number, required:true},
+    canBeSplit:{ type : Boolean, default:false }
 });
