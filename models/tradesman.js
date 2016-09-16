@@ -2,12 +2,16 @@ var mongoose = require('mongoose');
 
 module.exports = mongoose.model('Tradesman',{
     user: {type:mongoose.Schema.Types.ObjectId, ref:'User', required:true},
+    currentLocation:{type:mongoose.Schema.Types.ObjectId, ref:'TradesmanLocation'},
+    experience:{type:Number, default:0},
+    numberOfReviews:{type:Number, default:0},
+    picture :{type:String, default:''},
+    rating:{type:Number, default:0},
+    settings:{type : Object, default:{}},
+    standardWeeklyHours:{type : Object, default:{}},
     type:{type:String, default:''},
-    rating:{type:Number, default:''},
-    numberOfReviews:{type:Number, default:''},
-    experience:{type:Number, default:''},
-    tradesmanLocation:{type:mongoose.Schema.Types.ObjectId, ref:'TradesmanLocation'},
-    workAreas:{ type : Array , "default" : [] },
-    standardWeeklyHours:{type:String},
-    settings:{ type : String}
+    workAreas:{ type : Array , "default" : [] }
 });
+
+
+
