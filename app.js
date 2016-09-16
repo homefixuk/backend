@@ -1,5 +1,5 @@
-var env = process.env.NODE_ENV || 'dev'
-var config = require('./config')[env]
+var env = process.env.NODE_ENV || 'dev';
+var config = require('./config')[env];
 
 console.log("ENV:",env);
 
@@ -7,19 +7,25 @@ var express = require('express');
 var app = express();
 var mongoose = require('mongoose');
 mongoose.connect(config.mongoUrl);
-var mongo_express = require('mongo-express/lib/middleware')
-app.use('/mongo_express', mongo_express(config.mongo_express_config))
+
+var mongo_express = require('mongo-express/lib/middleware');
+app.use('/mongo_express', mongo_express(config.mongo_express_config));
+
 var path = require('path');
 app.use(express.static(path.join(__dirname, 'public')));
+
 var cookieParser = require('cookie-parser');
+app.use(cookieParser());
+
 var bodyParser = require('body-parser');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
     extended: false
 }));
-app.use(cookieParser());
+
 var flash = require('connect-flash');
 app.use(flash());
+
 var swig = require('swig');
 app.set('views', path.join(__dirname, 'views'));
 app.engine('html', swig.renderFile);
@@ -28,6 +34,7 @@ app.set('view cache', false);
 swig.setDefaults({
     cache: false
 });
+
 var passport = require('passport');
 app.use(passport.initialize());
 
