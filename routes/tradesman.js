@@ -3,6 +3,8 @@ var router = express.Router();
 var Tradesman = require('../models/tradesman');
 var TradesmanPrivate = require('../models/tradesmanPrivate');
 var TradesmanLocation = require('../models/tradesmanLocation');
+var User = require('../models/user');
+
 router.get('/tradesman/me', function (req, res, next) {
     Tradesman.findOne({
         user: req.user
@@ -64,17 +66,24 @@ router.patch('/tradesman/me', function (req, res, next) {
             newErr.status = 500;
             next(newErr);
         } else {
+            User.findOneAndUpdate({_id: tradesman.user}, req.query, function (err, user) {
+                if (err) {
+                    next(err)
+                } else {
+                    Tradesman.findOne({user: req.user})
+                        .populate('currentLocation')
+                        .populate('user')
+                        .exec(function (err, t2) {
+                            if (err) {
+                                next(err)
+                            } else {
+                                res.send(t2)
 
-            Tradesman.findOne({ user: req.user })
-                .populate('currentLocation')
-                .populate('user')
-                .exec(function (err, t2) {
-                    if (err) {
-                        next(err)
-                    }
-                    res.send(t2)
-                });
+                            }
+                        });
+                }
 
+            });
         }
     });
 });
@@ -97,7 +106,7 @@ router.patch('/tradesman/me/private', function (req, res, next) {
                         newErr.status = 500;
                         next(newErr);
                     } else {
-                        res.json({ message: 'Tradesman Private Details Updated' })
+                        res.json({message: 'Tradesman Private Details Updated'})
                     }
                 });
             } else {
@@ -144,7 +153,7 @@ router.post('/tradesman/location', function (req, res, next) {
                                 newErr.status = 500;
                                 next(newErr);
                             } else {
-                                resp.json({ message: 'Tradesman Current Location Updated' })
+                                res.json({message: 'Tradesman Current Location Updated'})
                             }
                         });
 

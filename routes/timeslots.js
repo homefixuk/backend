@@ -36,7 +36,7 @@ router.get('/tradesman/timeslots', function(req, res, next) {
     });
 });
 
-router.post('/tradesman/timeslots', function(req, res, next) {
+router.post('/tradesman/timeslot', function(req, res, next) {
     Tradesman.findOne({
         user: req.user
     }).exec(function(err, tradesman) {
@@ -96,7 +96,7 @@ router.post('/tradesman/timeslots', function(req, res, next) {
     });
 });
 
-router.patch('/tradesman/timeslots/:id', function(req, res, next) {
+router.patch('/tradesman/timeslot/:id', function(req, res, next) {
     Timeslot.findOneAndUpdate({_id:req.params.id},req.query, function(err,tslot){
         if(err){
             var newErr = new Error('Error encountered while updating the Timeslot');
@@ -109,7 +109,7 @@ router.patch('/tradesman/timeslots/:id', function(req, res, next) {
     });
 });
 
-router.delete('/tradesman/timeslots/:id', function(req, res, next) {
+router.delete('/tradesman/timeslot/:id', function(req, res, next) {
 
     Timeslot.find({_id:req.params.id}).remove().exec(function(err){
         if(err){
