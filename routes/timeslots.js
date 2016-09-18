@@ -81,10 +81,27 @@ router.post('/tradesman/timeslot', function(req, res, next) {
                     });
 
                 }else{
-                    var nErr = new Error('Existing Service required for creating Timeslot');
-                    nErr.err = err;
-                    nErr.status = 500;
-                    next(nErr);
+                    var tslot = new Timeslot();
+                    tslot.tradesman = tradesman;
+                    if(req.query.end){
+                        tslot.end = req.query.end;
+                    }
+                    if(req.query.start){
+                        tslot.start = req.query.start;
+                    }
+                    if(req.query.slotLength){
+                        tslot.slotLength = req.query.slotLength;
+                    }
+                    tslot.save(function(err,tslot){
+                        if(err){
+                            var nErr = new Error('Error saving Timeslot');
+                            nErr.err = err;
+                            nErr.status = 500;
+                            next(nErr);
+                        }else{
+                            res.json({success: true, message: 'New Timeslot Created', timeslot: tslot._id});
+                        }
+                    });
                 }
 
             } else {
