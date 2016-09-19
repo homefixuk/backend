@@ -43,8 +43,8 @@ router.post('/services', function (req, res, next) {
             else {
                 if (tradesman) {
 
-                    async.parallel([
-                            //find or create user, customer
+                    async.waterfall([
+                            //find or create customer user
                             function (callback) {
                                 var newUser = {
                                     email: req.query.customerEmail,
@@ -52,103 +52,122 @@ router.post('/services', function (req, res, next) {
                                     firstName: req.query.customerName,
                                     password: shortid.generate()
                                 };
-                                User.findOneAndUpdate({email: req.query.customerEmail}, newUser, {upsert: true}, function (err, user) {
+                                User.findOneAndUpdate({ email: req.query.customerEmail }, newUser, {
+                                    upsert: true,
+                                    new: true
+                                }, function (err, user) {
                                     if (err) {
                                         callback(err, null)
                                     } else {
-                                        var newCustomer = {user: user};
-                                        Customer.findOneAndUpdate({user: user}, newCustomer, {upsert: true}, function (err, customer) {
-                                            callback(err, customer)
-                                        });
+                                        callback(null, user)
                                     }
                                 });
-
+                            },
+                            //find or create customer
+                            function (user, callback) {
+                                var newCustomer = { user: user };
+                                Customer.findOneAndUpdate({ user: user }, newCustomer, {
+                                    upsert: true,
+                                    new: true
+                                }, function (custSaveErr, customer) {
+                                    if (custSaveErr) {
+                                        callback(custSaveErr)
+                                    } else {
+                                        callback(null, customer)
+                                    }
+                                });
                             },
                             //find or create property
-                            function (callback) {
+                            function (customer, callback) {
                                 Property.findOneAndUpdate({
                                     addressLine1: req.query.addressLine1,
                                     postcode: req.query.postcode,
                                     country: req.query.country
-                                }, req.query, {upsert: true}, function (err, property) {
-                                    callback(err, property);
+                                }, req.query, { upsert: true, new: true }, function (propSaveErr, property) {
+                                    if (propSaveErr) {
+                                        callback(propSaveErr, null);
+                                    } else {
+                                        callback(null, property, customer);
+                                    }
+                                });
+                            },
+                            //find or create customerproperty
+                            function (property, customer, callback) {
+                                var newCustomerProperty = {
+                                    customer: customer,
+                                    property: property,
+                                    type: req.query.customerPropertyRelationship
+                                };
+                                CustomerProperty.findOneAndUpdate({
+                                    customer: customer,
+                                    property: property
+                                }, newCustomerProperty, { upsert: true, new: true }, function (custPropSaveErr, cP) {
+                                    if (custPropSaveErr) {
+                                        callback(custPropSaveErr)
+                                    } else {
+                                        callback(null, cP)
+                                    }
                                 });
                             },
                             //find or create problem
-                            function (callback) {
-                                var newProblem = {name: req.query.problemName};
-                                Problem.findOneAndUpdate(newProblem, newProblem, {upsert: true}, function (err, problem) {
-                                    callback(err, problem);
+                            function (cP, callback) {
+                                var newProblem = { name: req.query.problemName };
+                                Problem.findOneAndUpdate(newProblem, newProblem, {
+                                    upsert: true,
+                                    new: true
+                                }, function (probSaveErr, problem) {
+
+                                    if (probSaveErr) {
+                                        callback(probSaveErr, null);
+                                    } else {
+                                        callback(null, problem, cP);
+                                    }
                                 });
+                            },
+                            //find or create serviceset
+                            function (problem, cP, callback) {
+                                var newServiceSet = { customerProperty: cP };
+                                ServiceSet.findOneAndUpdate(newServiceSet, newServiceSet, {
+                                    upsert: true,
+                                    new: true
+                                }, function (serviceSetErr, serviceset) {
+                                    if (serviceSetErr) {
+                                        callback(serviceSetErr)
+                                    } else {
+                                        callback(null, serviceset, problem)
+                                    }
+                                });
+
+                            },
+                            //create new service
+                            function (serviceset, problem, callback) {
+                                var newService = new Service();
+                                newService.tradesman = tradesman;
+                                newService.serviceSet = serviceset;
+                                newService.problem = problem;
+                                newService.save(function (serviceErr, service) {
+                                    if (serviceErr) {
+                                        callback(serviceErr)
+                                    }
+                                    else {
+                                        callback(null, service);
+                                    }
+                                })
                             }
                         ],
-                        function (err, result) {
-                            if (err) {
-                                next(err)
+                        //populate service
+                        function (asynWaterfallErr, service) {
+                            if (asynWaterfallErr) {
+                                next(asynWaterfallErr)
                             } else {
-
-                                async.waterfall([
-                                        //find or create customerproperty
-                                        function (callback) {
-                                            var newCustomerProperty = {
-                                                customer: result[0],
-                                                property: result[1],
-                                                type: req.query.customerPropertyRelationship
-                                            };
-                                            CustomerProperty.findOneAndUpdate({
-                                                customer: result[0],
-                                                property: result[1]
-                                            }, newCustomerProperty, {upsert: true}, function (err, customerproperty) {
-                                                if (err) {
-                                                    callback(err)
-                                                } else {
-                                                    callback(null, customerproperty)
-                                                }
-                                            });
-                                        },
-                                        //find or create serviceset
-                                        function (customerproperty, callback) {
-                                            var newServiceSet = {customerProperty: customerproperty};
-                                            ServiceSet.findOneAndUpdate(newServiceSet, newServiceSet, {upsert: true}, function (err, serviceset) {
-                                                if (err) {
-                                                    callback(err)
-                                                } else {
-                                                    callback(null, serviceset)
-                                                }
-                                            });
-
-                                        },
-                                        //create new service
-                                        function (serviceset, callback) {
-                                            var newService = new Service();
-                                            newService.tradesman = tradesman;
-                                            newService.serviceSet = serviceset;
-                                            newService.problem = result[2];
-                                            newService.save(function (err, service) {
-                                                if (err) {
-                                                    callback(err)
-                                                }
-                                                else {
-                                                    callback(null, service);
-                                                }
-                                            })
-                                        }
-                                    ],
-                                    //populate service
-                                    function (err, service) {
-                                        if (err) {
-                                            next(err)
-                                        } else {
-                                            ServiceSet.populate(service.serviceSet, {path: 'customerProperty'}, function (err, obj) {
-                                                CustomerProperty.populate(obj.customerProperty, {path: 'customer property'}, function (err, obj1) {
-                                                    res.json(service);
-                                                });
-                                            })
-                                        }
+                                ServiceSet.populate(service.serviceSet, { path: 'customerProperty' }, function (err, obj) {
+                                    CustomerProperty.populate(obj.customerProperty, { path: 'customer property' }, function (err, obj1) {
+                                        res.json(service);
                                     });
-
+                                })
                             }
                         });
+
                 } else {
                     var err = new Error('Requested Tradesman could not be found');
                     err.status = 500;
@@ -182,7 +201,7 @@ router.get('/services', function (req, res, next) {
 });
 
 router.get('/services/:id', function (req, res, next) {
-    Service.find({_id: req.params.id}).exec(function (err, service) {
+    Service.find({ _id: req.params.id }).exec(function (err, service) {
         if (err) {
             var newErr = new Error('Error encountered while getting Service.');
             newErr.message = err.message;
@@ -227,7 +246,7 @@ router.get('/services/:id/problem', function (req, res, next) {
             next(nErr);
         } else {
             if (service) {
-                Problem.findOne({_id: service.problem}).exec(function (err, problem) {
+                Problem.findOne({ _id: service.problem }).exec(function (err, problem) {
                     if (err) {
                         var nErr = new Error('Error getting Problem for requested Service');
                         nErr.err = err;
@@ -258,7 +277,7 @@ router.post('/services/:id/problem/parts/:id', function (req, res, next) {
             next(nErr);
         } else {
             if (service) {
-                Problem.findOne({_id: service.problem}).exec(function (err, problem) {
+                Problem.findOne({ _id: service.problem }).exec(function (err, problem) {
                     if (err) {
                         var nErr = new Error('Error getting Problem for requested Service');
                         nErr.err = err;
@@ -266,7 +285,7 @@ router.post('/services/:id/problem/parts/:id', function (req, res, next) {
                         next(nErr);
                     } else {
 
-                        Part.findOne({_id: req.params.id}).exec(function (err, part) {
+                        Part.findOne({ _id: req.params.id }).exec(function (err, part) {
                             if (err) {
                                 var nErr = new Error('Error getting requested Part.');
                                 nErr.status = 500;
