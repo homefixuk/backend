@@ -93,7 +93,8 @@ if(env === 'dev') {
         res.status(err.status || 500);
         res.json({
             message: "Error Response",
-            errorMessage: err.message
+            errorMessage: err.message,
+            error: err
         });
     });
 }
