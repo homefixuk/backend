@@ -18,7 +18,9 @@ var cookieParser = require('cookie-parser');
 app.use(cookieParser());
 
 var bodyParser = require('body-parser');
+var expressValidator = require('express-validator');
 app.use(bodyParser.json());
+app.use(expressValidator([]));
 app.use(bodyParser.urlencoded({
     extended: false
 }));

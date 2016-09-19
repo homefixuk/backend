@@ -19,5 +19,5 @@ module.exports = mongoose.model('User', {
     mobile: { type: String, default: '' },
     token: { type: String, default: '' }
 });
-
+    
 

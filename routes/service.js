@@ -1,12 +1,125 @@
 var express = require('express');
 var router = express.Router();
-
-var Customer = require('../models/customer');
-var Tradesman = require('../models/tradesman');
-var Service = require('../models/service');
-var Problem = require('../models/problem');
-var Part = require('../models/part');
 var async = require('async');
+var shortid = require('shortid');
+
+var Tradesman = require('../models/tradesman');
+var User = require('../models/user');
+var Customer = require('../models/customer');
+var Property = require('../models/property');
+var Problem = require('../models/problem');
+var CustomerProperty = require('../models/customerproperty');
+var ServiceSet = require('../models/serviceSet');
+var Service = require('../models/service');
+var Part = require('../models/part');
+
+router.post('/services', function (req, res, next) {
+
+    req.checkQuery('customerEmail', 'required').notEmpty();
+    req.checkQuery('customerPhone', 'required').notEmpty();
+    req.checkQuery('customerName', 'required').notEmpty();
+
+    var validationError = req.validationErrors();
+    if (validationError) {
+        next(validationError);
+    } else {
+
+        Tradesman.findOne({
+            user: req.user
+        }).exec(function (err, tradesman) {
+            if (err) {
+                var err = new Error('Error encounter while getting the logged in Tradesman');
+                err.message = err.message;
+                err.status = 500;
+                next(err);
+            }
+            else {
+                if (tradesman) {
+
+                    async.parallel([function (callback) {
+                        //find or create user, customer
+                        var newUser = {
+                            email: req.query.customerEmail,
+                            mobile: req.query.customerPhone,
+                            firstName: req.query.customerName,
+                            password: shortid.generate()
+                        };
+                        User.findOneAndUpdate({ email: req.query.customerEmail }, newUser, { upsert: true }, function (err, user) {
+                            if (err) {
+                                callback(err, null)
+                            } else {
+                                var newCustomer = { user: user };
+                                Customer.findOneAndUpdate({ user: user }, newCustomer, { upsert: true }, function (err, customer) {
+                                    callback(err, customer)
+                                });
+                            }
+                        });
+
+                    }, function (callback) {
+                        //find or create property
+                        Property.findOneAndUpdate({
+                            addressLine1: req.query.addressLine1,
+                            postcode: req.query.postcode,
+                            country: req.query.country
+                        }, req.query, { upsert: true }, function (err, property) {
+                            callback(err, property);
+                        });
+                    }, function (callback) {
+                        //find or create problem
+                        var newProblem = { name: req.query.problemName };
+                        Problem.findOneAndUpdate(newProblem, newProblem, { upsert: true }, function (err, problem) {
+                            callback(err, problem);
+                        });
+                    }], function (err, result) {
+
+                        if (err) {
+                            next(err)
+                        } else {
+                            async.parallel([function (callback) {
+                                //find or create customerproperty
+                                var newCustomerProperty = {
+                                    customer: result[0],
+                                    property: result[1],
+                                    type: req.query.customerPropertyRelationship
+                                };
+                                CustomerProperty.findOneAndUpdate({
+                                    customer: result[0],
+                                    property: result[1]
+                                }, newCustomerProperty, { upsert: true }, function (err, customerproperty) {
+                                    callback(err, customerproperty);
+                                });
+                            }], function (err, result2) {
+                                //find or create serviceset
+                                var newServiceSet = { customerProperty: result2[0] };
+                                ServiceSet.findOneAndUpdate(newServiceSet, newServiceSet, { upsert: true }, function (err, serviceset) {
+                                    if (err) {
+                                        next(err)
+                                    } else {
+                                        //create service
+                                        var newService = new Service();
+                                        newService.tradesman = tradesman;
+                                        newService.serviceSet = serviceset;
+                                        newService.problem = result[2];
+                                        newService.save(function (err, service) {
+                                            if (err) next(err);
+                                            else res.json(service);
+                                        })
+                                    }
+                                });
+                            });
+
+                        }
+                    });
+                } else {
+                    var err = new Error('Requested Tradesman could not be found');
+                    err.status = 500;
+                    next(err);
+                }
+            }
+        });
+    }
+
+});
 
 router.get('/services', function (req, res, next) {
     Service.find({}).exec(function (err, services) {
@@ -29,78 +142,8 @@ router.get('/services', function (req, res, next) {
     });
 });
 
-router.post('/services', function (req, res, next) {
-    Tradesman.findOne({
-        user: req.user
-    }).exec(function (err, tradesman) {
-        if (err) {
-            var err = new Error('Error encounter while getting the logged in Tradesman');
-            err.message = err.message;
-            err.status = 500;
-            next(err);
-        } else {
-            if (tradesman) {
-                async.parallel([function (callback) {
-                    //find or create customer
-                    Customer.findOneAndUpdate({user: req.params.id}, req.query, {upsert: true}, function (err, customer) {
-                        if(err){
-                            callback(err,null)
-                        }else{
-                            callback(null,customer)
-                        }
-                    });
-                }, function (callback) {
-                    //find or create property
-                }, function (callback) {
-                    //find or create problem
-                }], function (err, result) {
-                    async.parallel([function (callback) {
-                        //find or create customerproperty
-                    }], function (err, result) {
-                        //find or create serviceset
-                        //create service
-                    });
-                });
-
-
-                if (req.query.problem) {
-                    var newProblem = new Problem();
-                    newProblem.description = req.query.problem;
-                    newProblem.save(function (err, problem) {
-                        var newService = new Service();
-                        newService.problem = problem;
-                        newService.tradesman = tradesman;
-                        if (req.query.status) {
-                            newService.status = req.query.status;
-                        }
-                        newService.save(function (err, service) {
-                            if (err) {
-                                var newErr = new Error('Error creating new service.');
-                                newErr.error = err;
-                                newErr.status = 500;
-                                next(newErr);
-                            } else {
-                                res.json({success: true, message: 'New Service Created', service: service._id});
-                            }
-                        });
-                    })
-                } else {
-                    var newErr = new Error('Could not create new Service. Problem required.');
-                    newErr.status = 500;
-                    next(newErr);
-                }
-            } else {
-                var err = new Error('Requested Tradesman could not be found');
-                err.status = 500;
-                next(err);
-            }
-        }
-    });
-
-});
-
 router.get('/services/:id', function (req, res, next) {
-    Service.find({_id: req.params.id}).exec(function (err, service) {
+    Service.find({ _id: req.params.id }).exec(function (err, service) {
         if (err) {
             var newErr = new Error('Error encountered while getting Service.');
             newErr.message = err.message;
@@ -145,7 +188,7 @@ router.get('/services/:id/problem', function (req, res, next) {
             next(nErr);
         } else {
             if (service) {
-                Problem.findOne({_id: service.problem}).exec(function (err, problem) {
+                Problem.findOne({ _id: service.problem }).exec(function (err, problem) {
                     if (err) {
                         var nErr = new Error('Error getting Problem for requested Service');
                         nErr.err = err;
@@ -176,7 +219,7 @@ router.post('/services/:id/problem/parts/:id', function (req, res, next) {
             next(nErr);
         } else {
             if (service) {
-                Problem.findOne({_id: service.problem}).exec(function (err, problem) {
+                Problem.findOne({ _id: service.problem }).exec(function (err, problem) {
                     if (err) {
                         var nErr = new Error('Error getting Problem for requested Service');
                         nErr.err = err;
@@ -184,7 +227,7 @@ router.post('/services/:id/problem/parts/:id', function (req, res, next) {
                         next(nErr);
                     } else {
 
-                        Part.findOne({_id: req.params.id}).exec(function (err, part) {
+                        Part.findOne({ _id: req.params.id }).exec(function (err, part) {
                             if (err) {
                                 var nErr = new Error('Error getting requested Part.');
                                 nErr.status = 500;
