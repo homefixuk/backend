@@ -21,14 +21,14 @@ router.post('/charge', function (req, res, next) {
     } else {
 
         async.waterfall([
-            function(callback){
-                Service.findOne({ _id: req.query.service }, function (err, service) {
+            function (callback) {
+                Service.findOne({_id: req.query.service}, function (err, service) {
                     if (err) {
                         callback(err);
                     } else {
                         if (service) {
-                            callback(null,service)
-                        }else{
+                            callback(null, service)
+                        } else {
                             var newErr = new Error('Requested Service could not be found');
                             newErr.error = err;
                             newErr.status = 500;
@@ -37,27 +37,27 @@ router.post('/charge', function (req, res, next) {
                     }
                 });
             },
-            function(service,callback){
+            function (service, callback) {
                 var newCharge = new Charge(req.query);
                 newCharge.service = service;
-                newCharge.save(function(err,charge){
+                newCharge.save(function (err, charge) {
                     if (err) callback(err);
-                    else{
-                        callback(null,service)
+                    else {
+                        callback(null, charge, service)
                     }
                 })
             },
-            function(service,callback){
-                ServiceSet.findOne({_id:service.serviceSet},function(err,ss){
+            function (charge, service, callback) {
+                ServiceSet.findOne({_id: service.serviceSet}, function (err, ss) {
                     ss.charges.push(charge);
-                    ss.save(function(err){
-                        if(err) callback(err);
-                        else callback(null,charge);
+                    ss.save(function (err) {
+                        if (err) callback(err);
+                        else callback(null, charge);
                     })
 
                 });
             }
-        ],function(err,charge){
+        ], function (err, charge) {
             if (err) next(err);
             else res.json(charge)
         });
@@ -67,45 +67,55 @@ router.post('/charge', function (req, res, next) {
 });
 
 router.patch('/charge/:id', function (req, res, next) {
-    Charge.findOneAndUpdate({_id:req.params.id},req.query,{new:true},function(err,charge){
-        if(err){
+    Charge.findOneAndUpdate({_id: req.params.id}, req.query, {new: true}, function (err, charge) {
+        if (err) {
             next(err)
-        }else{
+        } else {
             res.json(charge)
         }
     })
 });
 router.delete('/charge/:id', function (req, res, next) {
-    Charge.find({ _id: req.params.id }).remove().exec(function (err) {
+    Charge.findOne({_id: req.params.id}).exec(function (err, charge) {
         if (err) {
-            var newErr = new Error('Error deleting Charge');
+            var newErr = new Error('Error locating Charge');
             newErr.error = err;
             newErr.status = 500;
             next(newErr);
-        }else{
-
-            Service.find({_id:charge.service},function(err,service){
-               if(err) next(err);
-                else{
-
-                   if(service){
-                       ServiceSet.find({_id:service.serviceSet},function(err,serviceSet){
-                            if(err) next(err);
-                           else{
-                                if(serviceSet){
-
-                                    serviceSet.charges = _.without(serviceSet.charges,req.params.id);
-                                    serviceSet.save()
+        } else {
+            Service.findOne({_id: charge.service}, function (err, service) {
+                if (err) next(err);
+                else {
+                    if (service) {
+                        ServiceSet.findOne({_id: service.serviceSet}, function (err, serviceSet) {
+                            if (err) next(err);
+                            else {
+                                if (serviceSet) {
+                                    serviceSet.charges = _.without(serviceSet.charges, req.params.id);
+                                    serviceSet.save(function (err, resp) {
+                                        if (err) next(err);
+                                        else {
+                                            Charge.findOne({_id: req.params.id}).remove().exec(function (err) {
+                                                res.json({success: true, message: 'Charge Deleted'})
+                                            });
+                                        }
+                                    })
+                                } else {
+                                    var newErr = new Error('Could not find Service Set');
+                                    newErr.error = err;
+                                    newErr.status = 500;
+                                    next(newErr);
                                 }
                             }
-                       })
-                   }
-
-
-               }
+                        })
+                    } else {
+                        var newErr = new Error('Could not find Service');
+                        newErr.error = err;
+                        newErr.status = 500;
+                        next(newErr);
+                    }
+                }
             });
-            
-            res.json({ success: true, message: 'Charge Deleted'});
         }
     })
 });

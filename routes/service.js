@@ -52,7 +52,7 @@ router.post('/services', function (req, res, next) {
                                     firstName: req.query.customerName,
                                     password: shortid.generate()
                                 };
-                                User.findOneAndUpdate({ email: req.query.customerEmail }, newUser, {
+                                User.findOneAndUpdate({email: req.query.customerEmail}, newUser, {
                                     upsert: true,
                                     new: true
                                 }, function (err, user) {
@@ -65,8 +65,8 @@ router.post('/services', function (req, res, next) {
                             },
                             //find or create customer
                             function (user, callback) {
-                                var newCustomer = { user: user };
-                                Customer.findOneAndUpdate({ user: user }, newCustomer, {
+                                var newCustomer = {user: user};
+                                Customer.findOneAndUpdate({user: user}, newCustomer, {
                                     upsert: true,
                                     new: true
                                 }, function (custSaveErr, customer) {
@@ -83,7 +83,7 @@ router.post('/services', function (req, res, next) {
                                     addressLine1: req.query.addressLine1,
                                     postcode: req.query.postcode,
                                     country: req.query.country
-                                }, req.query, { upsert: true, new: true }, function (propSaveErr, property) {
+                                }, req.query, {upsert: true, new: true}, function (propSaveErr, property) {
                                     if (propSaveErr) {
                                         callback(propSaveErr, null);
                                     } else {
@@ -101,7 +101,7 @@ router.post('/services', function (req, res, next) {
                                 CustomerProperty.findOneAndUpdate({
                                     customer: customer,
                                     property: property
-                                }, newCustomerProperty, { upsert: true, new: true }, function (custPropSaveErr, cP) {
+                                }, newCustomerProperty, {upsert: true, new: true}, function (custPropSaveErr, cP) {
                                     if (custPropSaveErr) {
                                         callback(custPropSaveErr)
                                     } else {
@@ -111,7 +111,7 @@ router.post('/services', function (req, res, next) {
                             },
                             //find or create problem
                             function (cP, callback) {
-                                var newProblem = { name: req.query.problemName };
+                                var newProblem = {name: req.query.problemName};
                                 Problem.findOneAndUpdate(newProblem, newProblem, {
                                     upsert: true,
                                     new: true
@@ -126,7 +126,7 @@ router.post('/services', function (req, res, next) {
                             },
                             //find or create serviceset
                             function (problem, cP, callback) {
-                                var newServiceSet = { customerProperty: cP };
+                                var newServiceSet = {customerProperty: cP};
                                 ServiceSet.findOneAndUpdate(newServiceSet, newServiceSet, {
                                     upsert: true,
                                     new: true
@@ -160,9 +160,9 @@ router.post('/services', function (req, res, next) {
                             if (asynWaterfallErr) {
                                 next(asynWaterfallErr)
                             } else {
-                                ServiceSet.populate(service.serviceSet, { path: 'customerProperty' }, function (err, obj) {
-                                    CustomerProperty.populate(obj.customerProperty, { path: 'customer property' }, function (err, custProp) {
-                                        Customer.populate(custProp.customer,{path:'user'},function(err,customer){
+                                ServiceSet.populate(service.serviceSet, {path: 'customerProperty'}, function (err, obj) {
+                                    CustomerProperty.populate(obj.customerProperty, {path: 'customer property'}, function (err, custProp) {
+                                        Customer.populate(custProp.customer, {path: 'user'}, function (err, customer) {
                                             res.json(service);
                                         });
                                     });
@@ -203,23 +203,33 @@ router.get('/services', function (req, res, next) {
 });
 
 router.get('/services/:id', function (req, res, next) {
-    Service.find({ _id: req.params.id }).exec(function (err, service) {
-        if (err) {
-            var newErr = new Error('Error encountered while getting Service.');
-            newErr.message = err.message;
-            newErr.status = 500;
-            next(newErr);
-        } else {
-            if (service) {
-                res.json(service);
+    Service.findOne({_id: req.params.id})
+        .populate({path: 'serviceSet'})
+        .exec(function (err, service) {
+            if (err) {
+                next(err);
             } else {
-                var newErr = new Error('Could not get the requested Service');
-                newErr.status = 500;
-                next(newErr);
-            }
-        }
+                if (service) {
+                    ServiceSet.populate(service.serviceSet, {path: 'customerProperty payments charges'}, function (err, obj) {
+                        if (err)
+                            next(err);
+                        else {
+                            CustomerProperty.populate(obj.customerProperty, {path: 'customer property'}, function (err, custProp) {
+                                Customer.populate(custProp.customer, {path: 'user'}, function (err, customer) {
+                                    res.json(service);
+                                });
+                            });
+                        }
+                    });
 
-    });
+                } else {
+                    var newErr = new Error('Could not get the requested Service');
+                    newErr.status = 500;
+                    next(newErr);
+                }
+            }
+
+        });
 });
 
 router.patch('/services/:id', function (req, res, next) {
@@ -248,7 +258,7 @@ router.get('/services/:id/problem', function (req, res, next) {
             next(nErr);
         } else {
             if (service) {
-                Problem.findOne({ _id: service.problem }).exec(function (err, problem) {
+                Problem.findOne({_id: service.problem}).exec(function (err, problem) {
                     if (err) {
                         var nErr = new Error('Error getting Problem for requested Service');
                         nErr.err = err;
@@ -279,7 +289,7 @@ router.post('/services/:id/problem/parts/:id', function (req, res, next) {
             next(nErr);
         } else {
             if (service) {
-                Problem.findOne({ _id: service.problem }).exec(function (err, problem) {
+                Problem.findOne({_id: service.problem}).exec(function (err, problem) {
                     if (err) {
                         var nErr = new Error('Error getting Problem for requested Service');
                         nErr.err = err;
@@ -287,7 +297,7 @@ router.post('/services/:id/problem/parts/:id', function (req, res, next) {
                         next(nErr);
                     } else {
 
-                        Part.findOne({ _id: req.params.id }).exec(function (err, part) {
+                        Part.findOne({_id: req.params.id}).exec(function (err, part) {
                             if (err) {
                                 var nErr = new Error('Error getting requested Part.');
                                 nErr.status = 500;
