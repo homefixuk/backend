@@ -161,8 +161,10 @@ router.post('/services', function (req, res, next) {
                                 next(asynWaterfallErr)
                             } else {
                                 ServiceSet.populate(service.serviceSet, { path: 'customerProperty' }, function (err, obj) {
-                                    CustomerProperty.populate(obj.customerProperty, { path: 'customer property' }, function (err, obj1) {
-                                        res.json(service);
+                                    CustomerProperty.populate(obj.customerProperty, { path: 'customer property' }, function (err, custProp) {
+                                        Customer.populate(custProp.customer,{path:'user'},function(err,customer){
+                                            res.json(service);
+                                        });
                                     });
                                 })
                             }

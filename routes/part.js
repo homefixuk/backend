@@ -71,7 +71,7 @@ router.patch('/parts/:id', function (req, res, next) {
 
 });
 router.delete('/parts/:id', function (req, res, next) {
-    Part.find({ _id: req.param.id }).remove().exec(function (err) {
+    Part.find({ _id: req.params.id }).remove().exec(function (err) {
         if (err) {
             var newErr = new Error('Error deleting part');
             newErr.error = err;
