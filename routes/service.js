@@ -19,6 +19,13 @@ router.post('/services', function (req, res, next) {
     req.checkQuery('customerPhone', 'required').notEmpty();
     req.checkQuery('customerName', 'required').notEmpty();
 
+    req.checkQuery('addressLine1', 'required').notEmpty();
+    req.checkQuery('postcode', 'required').notEmpty();
+    req.checkQuery('country', 'required').notEmpty();
+
+    req.checkQuery('problemName', 'required').notEmpty();
+    req.checkQuery('startTime', 'required').notEmpty();
+
     var validationError = req.validationErrors();
     if (validationError) {
         next(validationError);
@@ -36,80 +43,112 @@ router.post('/services', function (req, res, next) {
             else {
                 if (tradesman) {
 
-                    async.parallel([function (callback) {
-                        //find or create user, customer
-                        var newUser = {
-                            email: req.query.customerEmail,
-                            mobile: req.query.customerPhone,
-                            firstName: req.query.customerName,
-                            password: shortid.generate()
-                        };
-                        User.findOneAndUpdate({ email: req.query.customerEmail }, newUser, { upsert: true }, function (err, user) {
-                            if (err) {
-                                callback(err, null)
-                            } else {
-                                var newCustomer = { user: user };
-                                Customer.findOneAndUpdate({ user: user }, newCustomer, { upsert: true }, function (err, customer) {
-                                    callback(err, customer)
-                                });
-                            }
-                        });
-
-                    }, function (callback) {
-                        //find or create property
-                        Property.findOneAndUpdate({
-                            addressLine1: req.query.addressLine1,
-                            postcode: req.query.postcode,
-                            country: req.query.country
-                        }, req.query, { upsert: true }, function (err, property) {
-                            callback(err, property);
-                        });
-                    }, function (callback) {
-                        //find or create problem
-                        var newProblem = { name: req.query.problemName };
-                        Problem.findOneAndUpdate(newProblem, newProblem, { upsert: true }, function (err, problem) {
-                            callback(err, problem);
-                        });
-                    }], function (err, result) {
-
-                        if (err) {
-                            next(err)
-                        } else {
-                            async.parallel([function (callback) {
-                                //find or create customerproperty
-                                var newCustomerProperty = {
-                                    customer: result[0],
-                                    property: result[1],
-                                    type: req.query.customerPropertyRelationship
+                    async.parallel([
+                            //find or create user, customer
+                            function (callback) {
+                                var newUser = {
+                                    email: req.query.customerEmail,
+                                    mobile: req.query.customerPhone,
+                                    firstName: req.query.customerName,
+                                    password: shortid.generate()
                                 };
-                                CustomerProperty.findOneAndUpdate({
-                                    customer: result[0],
-                                    property: result[1]
-                                }, newCustomerProperty, { upsert: true }, function (err, customerproperty) {
-                                    callback(err, customerproperty);
-                                });
-                            }], function (err, result2) {
-                                //find or create serviceset
-                                var newServiceSet = { customerProperty: result2[0] };
-                                ServiceSet.findOneAndUpdate(newServiceSet, newServiceSet, { upsert: true }, function (err, serviceset) {
+                                User.findOneAndUpdate({email: req.query.customerEmail}, newUser, {upsert: true}, function (err, user) {
                                     if (err) {
-                                        next(err)
+                                        callback(err, null)
                                     } else {
-                                        //create service
-                                        var newService = new Service();
-                                        newService.tradesman = tradesman;
-                                        newService.serviceSet = serviceset;
-                                        newService.problem = result[2];
-                                        newService.save(function (err, service) {
-                                            if (err) next(err);
-                                            else res.json(service);
-                                        })
+                                        var newCustomer = {user: user};
+                                        Customer.findOneAndUpdate({user: user}, newCustomer, {upsert: true}, function (err, customer) {
+                                            callback(err, customer)
+                                        });
                                     }
                                 });
-                            });
 
-                        }
-                    });
+                            },
+                            //find or create property
+                            function (callback) {
+                                Property.findOneAndUpdate({
+                                    addressLine1: req.query.addressLine1,
+                                    postcode: req.query.postcode,
+                                    country: req.query.country
+                                }, req.query, {upsert: true}, function (err, property) {
+                                    callback(err, property);
+                                });
+                            },
+                            //find or create problem
+                            function (callback) {
+                                var newProblem = {name: req.query.problemName};
+                                Problem.findOneAndUpdate(newProblem, newProblem, {upsert: true}, function (err, problem) {
+                                    callback(err, problem);
+                                });
+                            }
+                        ],
+                        function (err, result) {
+                            if (err) {
+                                next(err)
+                            } else {
+
+                                async.waterfall([
+                                        //find or create customerproperty
+                                        function (callback) {
+                                            var newCustomerProperty = {
+                                                customer: result[0],
+                                                property: result[1],
+                                                type: req.query.customerPropertyRelationship
+                                            };
+                                            CustomerProperty.findOneAndUpdate({
+                                                customer: result[0],
+                                                property: result[1]
+                                            }, newCustomerProperty, {upsert: true}, function (err, customerproperty) {
+                                                if (err) {
+                                                    callback(err)
+                                                } else {
+                                                    callback(null, customerproperty)
+                                                }
+                                            });
+                                        },
+                                        //find or create serviceset
+                                        function (customerproperty, callback) {
+                                            var newServiceSet = {customerProperty: customerproperty};
+                                            ServiceSet.findOneAndUpdate(newServiceSet, newServiceSet, {upsert: true}, function (err, serviceset) {
+                                                if (err) {
+                                                    callback(err)
+                                                } else {
+                                                    callback(null, serviceset)
+                                                }
+                                            });
+
+                                        },
+                                        //create new service
+                                        function (serviceset, callback) {
+                                            var newService = new Service();
+                                            newService.tradesman = tradesman;
+                                            newService.serviceSet = serviceset;
+                                            newService.problem = result[2];
+                                            newService.save(function (err, service) {
+                                                if (err) {
+                                                    callback(err)
+                                                }
+                                                else {
+                                                    callback(null, service);
+                                                }
+                                            })
+                                        }
+                                    ],
+                                    //populate service
+                                    function (err, service) {
+                                        if (err) {
+                                            next(err)
+                                        } else {
+                                            ServiceSet.populate(service.serviceSet, {path: 'customerProperty'}, function (err, obj) {
+                                                CustomerProperty.populate(obj.customerProperty, {path: 'customer property'}, function (err, obj1) {
+                                                    res.json(service);
+                                                });
+                                            })
+                                        }
+                                    });
+
+                            }
+                        });
                 } else {
                     var err = new Error('Requested Tradesman could not be found');
                     err.status = 500;
@@ -143,7 +182,7 @@ router.get('/services', function (req, res, next) {
 });
 
 router.get('/services/:id', function (req, res, next) {
-    Service.find({ _id: req.params.id }).exec(function (err, service) {
+    Service.find({_id: req.params.id}).exec(function (err, service) {
         if (err) {
             var newErr = new Error('Error encountered while getting Service.');
             newErr.message = err.message;
@@ -188,7 +227,7 @@ router.get('/services/:id/problem', function (req, res, next) {
             next(nErr);
         } else {
             if (service) {
-                Problem.findOne({ _id: service.problem }).exec(function (err, problem) {
+                Problem.findOne({_id: service.problem}).exec(function (err, problem) {
                     if (err) {
                         var nErr = new Error('Error getting Problem for requested Service');
                         nErr.err = err;
@@ -219,7 +258,7 @@ router.post('/services/:id/problem/parts/:id', function (req, res, next) {
             next(nErr);
         } else {
             if (service) {
-                Problem.findOne({ _id: service.problem }).exec(function (err, problem) {
+                Problem.findOne({_id: service.problem}).exec(function (err, problem) {
                     if (err) {
                         var nErr = new Error('Error getting Problem for requested Service');
                         nErr.err = err;
@@ -227,7 +266,7 @@ router.post('/services/:id/problem/parts/:id', function (req, res, next) {
                         next(nErr);
                     } else {
 
-                        Part.findOne({ _id: req.params.id }).exec(function (err, part) {
+                        Part.findOne({_id: req.params.id}).exec(function (err, part) {
                             if (err) {
                                 var nErr = new Error('Error getting requested Part.');
                                 nErr.status = 500;
