@@ -1,6 +1,6 @@
 var mongoose = require('mongoose');
 module.exports = mongoose.model('TradesmanLocation', {
-    activity: {type: String, enum: ['unknown', 'still', 'walking', 'in-vehicle', 'running'], default: 'unknown'},
+    activity: {type: String, enum: ['unknown', 'still', 'walking', 'in_vehicle', 'running'], default: 'unknown'},
     isGoingToJob: {type: Boolean, default: false},
     timestamp: {type: Date, default: Date.now},
     tradesman: {type: mongoose.Schema.Types.ObjectId, ref: 'Tradesman', require: true},
