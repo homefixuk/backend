@@ -108,14 +108,22 @@ router.patch('/tradesman/me/private', function (req, res, next) {
             if (tradesman) {
                 TradesmanPrivate.findOneAndUpdate({
                     tradesman: tradesman
-                }, req.query, function (err, tradesmanPrivate) {
+                }, req.query,{new:true}, function (err, tradesmanPrivate) {
                     if (err) {
                         var newErr = new Error('Private Details could not be updated for this Tradesman');
                         newErr.error = err;
                         newErr.status = 500;
                         next(newErr);
                     } else {
-                        res.json({message: 'Tradesman Private Details Updated'})
+                        TradesmanPrivate.populate(tradesmanPrivate,{path:'tradesman'},function(err,tradesman) {
+                            Tradesman.populate(tradesmanPrivate.tradesman, { path: 'user currentLocation' }, function (err, tradesman) {
+                                if (err) {
+                                    next(err);
+                                } else {
+                                    res.json(tradesmanPrivate);
+                                }
+                            });
+                        });
                     }
                 });
             } else {
