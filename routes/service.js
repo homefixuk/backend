@@ -247,6 +247,19 @@ router.patch('/services/:id', function (req, res, next) {
     });
 });
 
+router.delete('/services/:id', function (req, res, next) {
+    Service.find({ _id: req.params.id }).remove().exec(function (err) {
+        if (err) {
+            var newErr = new Error('Error deleting Service');
+            newErr.error = err;
+            newErr.status = 500;
+            next(newErr);
+        } else {
+            res.json({ success: true, message: 'Service Deleted' });
+        }
+    });
+});
+
 router.get('/services/:id/problem', function (req, res, next) {
     Service.findOne({
         _id: req.params.id
