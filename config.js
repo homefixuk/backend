@@ -1,7 +1,7 @@
 var config = [];
 
 config['dev'] = {
-    mongoUrl: 'mongodb://localhost/homefix',
+    mongoUrl: 'mongodb://localhost/homefix_dev',
     mongo_express_config: {
         mongodb: {
             server: "localhost",
@@ -14,7 +14,7 @@ config['dev'] = {
             admin: false,
             auth: [
                 {
-                    database: 'homefix',
+                    database: 'homefix_dev',
                     username: '',
                     password: '',
                 },
