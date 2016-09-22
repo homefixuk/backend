@@ -45,7 +45,16 @@ router.get('/tradesman/me/private', function (req, res, next) {
                         err.status = 500;
                         next(err);
                     } else {
-                        res.json(tradesmanPrivate);
+
+                        Tradesman.populate(tradesmanPrivate.tradesman,{path:'user'}, function (err, tradesman) {
+                            if (err) {
+                                next(err);
+                            } else {
+                                res.json(tradesmanPrivate);
+                            }
+                        });
+
+
                     }
                 });
             } else {

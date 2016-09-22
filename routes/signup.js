@@ -11,8 +11,6 @@ module.exports = function (passport) {
         failureRedirect: '/unauthorized'
     }), function (req, res) {
         
-        console.log('Express Query Object',req.query);
-        
         User.findOne({
             'email': req.query.email
         }, function (err, user) {
