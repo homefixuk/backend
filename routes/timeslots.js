@@ -84,7 +84,29 @@ router.post('/tradesman/timeslot', function (req, res, next) {
                                     nErr.status = 500;
                                     next(nErr);
                                 } else {
-                                    res.json({ success: true, message: 'New Timeslot Created', timeslot: tslot._id });
+
+
+                                    Timeslot.find({
+                                        _id: tslot._id
+                                    }).populate({
+                                        path: 'tradesman',
+                                        model: Tradesman,
+                                        populate: { path: 'user', model: User }
+                                    }).populate({
+                                        path: 'service',
+                                        model: Service,
+                                        populate: [{ path: 'serviceSet', model: ServiceSet},{ path: 'tradesman', model: Tradesman}]
+                                    }).exec(function (err, timeslots) {
+                                        if (err) {
+                                            var err = new Error('Timeslots could not be found for this Tradesman');
+                                            err.status = 500;
+                                            next(err);
+                                        } else {
+                                            res.json(timeslots);
+                                        }
+                                    });
+
+
                                 }
                             });
                         }
@@ -109,7 +131,26 @@ router.post('/tradesman/timeslot', function (req, res, next) {
                             nErr.status = 500;
                             next(nErr);
                         } else {
-                            res.json({ success: true, message: 'New Timeslot Created', timeslot: tslot._id });
+
+                            Timeslot.find({
+                                _id: tslot._id
+                            }).populate({
+                                path: 'tradesman',
+                                model: Tradesman,
+                                populate: { path: 'user', model: User }
+                            }).populate({
+                                path: 'service',
+                                model: Service,
+                                populate: [{ path: 'serviceSet', model: ServiceSet},{ path: 'tradesman', model: Tradesman}]
+                            }).exec(function (err, timeslots) {
+                                if (err) {
+                                    var err = new Error('Timeslots could not be found for this Tradesman');
+                                    err.status = 500;
+                                    next(err);
+                                } else {
+                                    res.json(timeslots);
+                                }
+                            });
                         }
                     });
                 }
@@ -131,7 +172,26 @@ router.patch('/tradesman/timeslot/:id', function (req, res, next) {
             newErr.status = 500;
             next(newErr);
         } else {
-            res.json({ success: true, message: 'Timeslot Updated', timeslot: tslot._id });
+
+            Timeslot.find({
+                _id: req.params.id
+            }).populate({
+                path: 'tradesman',
+                model: Tradesman,
+                populate: { path: 'user', model: User }
+            }).populate({
+                path: 'service',
+                model: Service,
+                populate: [{ path: 'serviceSet', model: ServiceSet},{ path: 'tradesman', model: Tradesman}]
+            }).exec(function (err, timeslots) {
+                if (err) {
+                    var err = new Error('Timeslots could not be found for this Tradesman');
+                    err.status = 500;
+                    next(err);
+                } else {
+                    res.json(timeslots);
+                }
+            });
         }
     });
 });
