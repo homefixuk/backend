@@ -86,7 +86,7 @@ router.post('/tradesman/timeslot', function (req, res, next) {
                                 } else {
 
 
-                                    Timeslot.find({
+                                    Timeslot.findOne({
                                         _id: tslot._id
                                     }).populate({
                                         path: 'tradesman',
@@ -132,7 +132,7 @@ router.post('/tradesman/timeslot', function (req, res, next) {
                             next(nErr);
                         } else {
 
-                            Timeslot.find({
+                            Timeslot.findOne({
                                 _id: tslot._id
                             }).populate({
                                 path: 'tradesman',
@@ -173,7 +173,7 @@ router.patch('/tradesman/timeslot/:id', function (req, res, next) {
             next(newErr);
         } else {
 
-            Timeslot.find({
+            Timeslot.findOne({
                 _id: req.params.id
             }).populate({
                 path: 'tradesman',
