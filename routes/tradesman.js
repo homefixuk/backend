@@ -46,7 +46,7 @@ router.get('/tradesman/me/private', function (req, res, next) {
                         next(err);
                     } else {
 
-                        Tradesman.populate(tradesmanPrivate.tradesman,{path:'user'}, function (err, tradesman) {
+                        Tradesman.populate(tradesmanPrivate.tradesman,{path:'user currentLocation'}, function (err, tradesman) {
                             if (err) {
                                 next(err);
                             } else {
