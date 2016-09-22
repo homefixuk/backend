@@ -1,8 +1,10 @@
 var express = require('express');
 var router = express.Router();
+var User = require('../models/user');
 var Tradesman = require('../models/tradesman');
 var Timeslot = require('../models/timeslot');
 var Service = require('../models/service');
+var ServiceSet = require('../models/serviceSet');
 
 router.get('/tradesman/timeslots', function (req, res, next) {
     Tradesman.findOne({
@@ -17,21 +19,21 @@ router.get('/tradesman/timeslots', function (req, res, next) {
 
                 Timeslot.find({
                     tradesman: tradesman
-                }).populate('tradesman').exec(function (err, timeslots) {
+                }).populate({
+                    path: 'tradesman',
+                    model: Tradesman,
+                    populate: { path: 'user', model: User }
+                }).populate({
+                    path: 'service',
+                    model: Service,
+                    populate: [{ path: 'serviceSet', model: ServiceSet},{ path: 'tradesman', model: Tradesman}]
+                }).exec(function (err, timeslots) {
                     if (err) {
                         var err = new Error('Timeslots could not be found for this Tradesman');
                         err.status = 500;
                         next(err);
                     } else {
-
-                        Tradesman.populate(timeslots.tradesman, { path: 'user' }, function (err, tradesman) {
-                            if (err) {
-                                next(err);
-                            } else {
-                                res.json(timeslots);
-                            }
-                        });
-
+                        res.json(timeslots);
                     }
                 });
 
