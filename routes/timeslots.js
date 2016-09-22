@@ -23,7 +23,15 @@ router.get('/tradesman/timeslots', function (req, res, next) {
                         err.status = 500;
                         next(err);
                     } else {
-                        res.json(timeslots);
+
+                        Tradesman.populate(timeslots.tradesman, { path: 'user' }, function (err, tradesman) {
+                            if (err) {
+                                next(err);
+                            } else {
+                                res.json(timeslots);
+                            }
+                        });
+
                     }
                 });
 

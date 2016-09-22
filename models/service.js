@@ -6,6 +6,7 @@ module.exports = mongoose.model('Service', {
     estimatedWorkCost: {type: Number,default:0},
     estimatedWorkDuration: {type: Number,default:0},
     incompleteReason: {type: String,default:''},
+    serviceType: {type: String,default:''},
     isOwnJob: {type: Boolean,default:false},
     keyLocation: {type: String,default:''},
     partsUsed: [{type: mongoose.Schema.Types.ObjectId, ref: 'Part'}],
