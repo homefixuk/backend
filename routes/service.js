@@ -13,7 +13,7 @@ var ServiceSet = require('../models/serviceSet');
 var Service = require('../models/service');
 var Part = require('../models/part');
 
-router.post('/service', function (req, res, next) {
+router.post('/services', function (req, res, next) {
 
     req.checkQuery('customerEmail', 'required').notEmpty();
     req.checkQuery('customerPhone', 'required').notEmpty();
@@ -181,7 +181,7 @@ router.post('/service', function (req, res, next) {
 
 });
 
-router.get('/service', function (req, res, next) {
+router.get('/services', function (req, res, next) {
     Service.find({}).exec(function (err, services) {
 
         if (err) {
