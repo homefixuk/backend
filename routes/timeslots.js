@@ -104,20 +104,10 @@ router.post('/tradesman/timeslot', function (req, res, next) {
                                     }).populate({
                                         path: 'service',
                                         model: Service,
-                                        populate: [{
-                                            path: 'serviceSet', model: ServiceSet, populate: {
-                                                path: 'customerProperty',
-                                                model: CustomerProperty,
-                                                populate: [{ path: 'property', model: Property }, {
-                                                    path: 'customer',
-                                                    model: Customer,
-                                                    populate: { path: 'user', model: User }
-                                                }]
-                                            }
-                                        }, {
-                                            path: 'tradesman',
-                                            model: Tradesman,
-                                            populate: { path: 'user', model: User }
+                                        populate: [
+                                            {path: 'problem', model: Problem},
+                                            {path: 'serviceSet', model: ServiceSet, populate: {path: 'customerProperty', populate: [{ path: 'property', model: Property }, {path: 'customer', model: Customer, populate: { path: 'user', model: User }}]}},
+                                            {path: 'tradesman', model: Tradesman, populate: { path: 'user', model: User }
                                         }]
                                     }).exec(function (err, timeslots) {
                                         if (err) {
@@ -147,7 +137,7 @@ router.post('/tradesman/timeslot', function (req, res, next) {
                     if(req.query.type){
                         tslot.type = req.query.type;
                     }
-                    
+
                     tslot.slotLength = tslot.end - tslot.start;
 
                     tslot.save(function (err, tslot) {
@@ -167,10 +157,11 @@ router.post('/tradesman/timeslot', function (req, res, next) {
                             }).populate({
                                 path: 'service',
                                 model: Service,
-                                populate: [{ path: 'serviceSet', model: ServiceSet }, {
-                                    path: 'tradesman',
-                                    model: Tradesman
-                                }]
+                                populate: [
+                                    {path: 'problem', model: Problem},
+                                    {path: 'serviceSet', model: ServiceSet, populate: {path: 'customerProperty', populate: [{ path: 'property', model: Property }, {path: 'customer', model: Customer, populate: { path: 'user', model: User }}]}},
+                                    {path: 'tradesman', model: Tradesman, populate: { path: 'user', model: User }}
+                                ]
                             }).exec(function (err, timeslots) {
                                 if (err) {
                                     var err = new Error('Timeslots could not be found for this Tradesman');
