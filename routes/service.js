@@ -13,7 +13,7 @@ var ServiceSet = require('../models/serviceSet');
 var Service = require('../models/service');
 var Part = require('../models/part');
 
-router.post('/services', function (req, res, next) {
+router.post('/service', function (req, res, next) {
 
     req.checkQuery('customerEmail', 'required').notEmpty();
     req.checkQuery('customerPhone', 'required').notEmpty();
