@@ -282,7 +282,7 @@ router.get('/service/next', function (req, res, next) {
                     .populate({
                         path: 'service',
                         model: Service,
-                        populate: [{ path: 'serviceSet', model: ServiceSet,populate:{path:'customerProperty',model:CustomerProperty,populate:[{path:'customer',model:Customer},{path:'property',model:Property}]} },
+                        populate: [{ path: 'serviceSet', model: ServiceSet,populate:{path:'customerProperty',model:CustomerProperty,populate:[{path:'customer',model:Customer,populate:{path:'user',model:User}},{path:'property',model:Property}]} },
                             { path: 'tradesman', model: Tradesman,populate:{path:'user',model:User} },{ path: 'problem', model: Problem }]
                     })
                     .exec(function (err, timeslots) {
@@ -336,7 +336,7 @@ router.get('/service/current', function (req, res, next) {
                     .populate({
                         path: 'service',
                         model: Service,
-                        populate: [{ path: 'serviceSet', model: ServiceSet,populate:{path:'customerProperty',model:CustomerProperty,populate:[{path:'customer',model:Customer},{path:'property',model:Property}]} },
+                        populate: [{ path: 'serviceSet', model: ServiceSet,populate:{path:'customerProperty',model:CustomerProperty,populate:[{path:'customer',model:Customer,populate:{path:'user',model:User}},{path:'property',model:Property}]} },
                             { path: 'tradesman', model: Tradesman,populate:{path:'user',model:User}},{ path: 'problem', model: Problem }]
                     })
                     .exec(function (err, timeslots) {
