@@ -144,6 +144,10 @@ router.post('/tradesman/timeslot', function (req, res, next) {
                         tslot.start = req.query.start;
                     }
 
+                    if(req.query.type){
+                        tslot.type = req.query.type;
+                    }
+                    
                     tslot.slotLength = tslot.end - tslot.start;
 
                     tslot.save(function (err, tslot) {
