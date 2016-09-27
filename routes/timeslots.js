@@ -6,6 +6,12 @@ var Timeslot = require('../models/timeslot');
 var Service = require('../models/service');
 var ServiceSet = require('../models/serviceSet');
 
+var Customer = require('../models/customer');
+var Property = require('../models/property');
+var Problem = require('../models/problem');
+var CustomerProperty = require('../models/customerproperty');
+var Part = require('../models/part');
+
 router.get('/tradesman/timeslots', function (req, res, next) {
     Tradesman.findOne({
         user: req.user
@@ -26,7 +32,7 @@ router.get('/tradesman/timeslots', function (req, res, next) {
                 }).populate({
                     path: 'service',
                     model: Service,
-                    populate: [{ path: 'serviceSet', model: ServiceSet},{ path: 'tradesman', model: Tradesman}]
+                    populate: [{ path: 'serviceSet', model: ServiceSet }, { path: 'tradesman', model: Tradesman }]
                 }).exec(function (err, timeslots) {
                     if (err) {
                         var err = new Error('Timeslots could not be found for this Tradesman');
@@ -85,7 +91,6 @@ router.post('/tradesman/timeslot', function (req, res, next) {
                                     next(nErr);
                                 } else {
 
-
                                     Timeslot.findOne({
                                         _id: tslot._id
                                     }).populate({
@@ -95,7 +100,21 @@ router.post('/tradesman/timeslot', function (req, res, next) {
                                     }).populate({
                                         path: 'service',
                                         model: Service,
-                                        populate: [{ path: 'serviceSet', model: ServiceSet},{ path: 'tradesman', model: Tradesman}]
+                                        populate: [{
+                                            path: 'serviceSet', model: ServiceSet, populate: {
+                                                path: 'customerProperty',
+                                                model: CustomerProperty,
+                                                populate: [{ path: 'property', model: Property }, {
+                                                    path: 'customer',
+                                                    model: Customer,
+                                                    populate: { path: 'user', model: User }
+                                                }]
+                                            }
+                                        }, {
+                                            path: 'tradesman',
+                                            model: Tradesman,
+                                            populate: { path: 'user', model: User }
+                                        }]
                                     }).exec(function (err, timeslots) {
                                         if (err) {
                                             var err = new Error('Timeslots could not be found for this Tradesman');
@@ -105,7 +124,6 @@ router.post('/tradesman/timeslot', function (req, res, next) {
                                             res.json(timeslots);
                                         }
                                     });
-
 
                                 }
                             });
@@ -141,7 +159,10 @@ router.post('/tradesman/timeslot', function (req, res, next) {
                             }).populate({
                                 path: 'service',
                                 model: Service,
-                                populate: [{ path: 'serviceSet', model: ServiceSet},{ path: 'tradesman', model: Tradesman}]
+                                populate: [{ path: 'serviceSet', model: ServiceSet }, {
+                                    path: 'tradesman',
+                                    model: Tradesman
+                                }]
                             }).exec(function (err, timeslots) {
                                 if (err) {
                                     var err = new Error('Timeslots could not be found for this Tradesman');
@@ -182,7 +203,7 @@ router.patch('/tradesman/timeslot/:id', function (req, res, next) {
             }).populate({
                 path: 'service',
                 model: Service,
-                populate: [{ path: 'serviceSet', model: ServiceSet},{ path: 'tradesman', model: Tradesman}]
+                populate: [{ path: 'serviceSet', model: ServiceSet }, { path: 'tradesman', model: Tradesman }]
             }).exec(function (err, timeslots) {
                 if (err) {
                     var err = new Error('Timeslots could not be found for this Tradesman');

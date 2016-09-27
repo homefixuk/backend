@@ -189,39 +189,68 @@ router.post('/services', function (req, res, next) {
 });
 
 router.get('/services', function (req, res, next) {
-    Service
-        .find({})
-        .populate({
-            path: 'tradesman',
-            model: Tradesman,
-            populate: { path: 'user', model: User }
-        })
-        .populate({
-            path: 'problem',
-            model: Problem
-        })
-        .populate({
-            path: 'serviceSet',
-            model: ServiceSet,
-            populate: { path: 'customerProperty', model: CustomerProperty,populate:[{path:'property',model: Property},{path:'customer', model:Customer,populate:{path:'user',model:User}}] }
-        })
-        .exec(function (err, services) {
 
+    Tradesman.findOne({
+        user: req.user
+    }).exec(function (err, tradesman) {
         if (err) {
-            var newErr = new Error('Error encountered while getting services.');
-            newErr.message = err.message;
-            newErr.status = 500;
-            next(newErr);
-        } else {
-            if (services) {
-                res.json(services);
+            var err = new Error('Error encounter while getting the logged in Tradesman');
+            err.message = err.message;
+            err.status = 500;
+            next(err);
+        }
+        else {
+            if (tradesman) {
+                Service
+                    .find({})
+                    .sort({'date': -1})
+                    .limit(parseInt(req.query.limit))
+                    .populate({
+                        path: 'tradesman',
+                        model: Tradesman,
+                        populate: { path: 'user', model: User }
+                    })
+                    .populate({
+                        path: 'problem',
+                        model: Problem
+                    })
+                    .populate({
+                        path: 'serviceSet',
+                        model: ServiceSet,
+                        populate: {
+                            path: 'customerProperty',
+                            model: CustomerProperty,
+                            populate: [{ path: 'property', model: Property }, {
+                                path: 'customer',
+                                model: Customer,
+                                populate: { path: 'user', model: User }
+                            }]
+                        }
+                    })
+                    .exec(function (err, services) {
+
+                        if (err) {
+                            var newErr = new Error('Error encountered while getting services.');
+                            newErr.message = err.message;
+                            newErr.status = 500;
+                            next(newErr);
+                        } else {
+                            if (services) {
+                                res.json(services);
+                            } else {
+                                var newErr = new Error('Could not get services from database');
+                                newErr.status = 500;
+                                next(newErr);
+                            }
+                        }
+
+                    });
             } else {
-                var newErr = new Error('Could not get services from database');
-                newErr.status = 500;
-                next(newErr);
+                var err = new Error('Requested Tradesman could not be found');
+                err.status = 500;
+                next(err);
             }
         }
-
     });
 });
 
