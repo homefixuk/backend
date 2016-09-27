@@ -181,7 +181,7 @@ router.post('/services', function (req, res, next) {
 
 });
 
-router.get('/services', function (req, res, next) {
+router.get('/service', function (req, res, next) {
     Service.find({}).exec(function (err, services) {
 
         if (err) {
@@ -202,7 +202,7 @@ router.get('/services', function (req, res, next) {
     });
 });
 
-router.get('/services/:id', function (req, res, next) {
+router.get('/service/:id', function (req, res, next) {
     Service.findOne({ _id: req.params.id })
         .populate({ path: 'serviceSet' })
         .exec(function (err, service) {
@@ -232,7 +232,7 @@ router.get('/services/:id', function (req, res, next) {
         });
 });
 
-router.patch('/services/:id', function (req, res, next) {
+router.patch('/service/:id', function (req, res, next) {
     Service.findOneAndUpdate({
         _id: req.params.id
     }, req.query, function (err, service) {
@@ -247,7 +247,7 @@ router.patch('/services/:id', function (req, res, next) {
     });
 });
 
-router.delete('/services/:id', function (req, res, next) {
+router.delete('/service/:id', function (req, res, next) {
     Service.findOne({ _id: req.params.id }).exec(function (err, service) {
         if (err) {
             var newErr = new Error('Error deleting Service');
@@ -279,7 +279,7 @@ router.delete('/services/:id', function (req, res, next) {
     });
 });
 
-router.get('/services/:id/problem', function (req, res, next) {
+router.get('/service/:id/problem', function (req, res, next) {
     Service.findOne({
         _id: req.params.id
     }).exec(function (err, service) {
@@ -309,7 +309,7 @@ router.get('/services/:id/problem', function (req, res, next) {
     });
 });
 
-router.post('/services/:id/problem/parts/:id', function (req, res, next) {
+router.post('/service/:id/problem/parts/:id', function (req, res, next) {
 
     Service.findOne({
         _id: req.params.id
