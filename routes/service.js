@@ -203,7 +203,7 @@ router.get('/services', function (req, res, next) {
             if (tradesman) {
                 Service
                     .find({})
-                    .sort({'date': -1})
+                    .sort({'created': -1})
                     .limit(parseInt(req.query.limit))
                     .populate({
                         path: 'tradesman',

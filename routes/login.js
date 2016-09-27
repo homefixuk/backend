@@ -6,7 +6,7 @@ module.exports = function (passport) {
 
     router.get('/user/login',function(req,res){
         res.status(403).json({message:"Please Login"});
-    })
+    });
 
     router.post('/user/login', passport.authenticate('local', {
         failureRedirect: 'login'
@@ -15,8 +15,6 @@ module.exports = function (passport) {
         var token = jwt.sign(req.user, "secret");
         res.json({ success: true, token: 'JWT ' + token });
     });
-
-
-
+    
     return router;
-}
+};

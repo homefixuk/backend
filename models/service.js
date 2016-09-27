@@ -22,5 +22,6 @@ module.exports = mongoose.model('Service', {
     },
     tradesman: {type: mongoose.Schema.Types.ObjectId, ref: 'Tradesman', required: true},
     tradesmanNotes: {type: String,default:''},
-    workCompletedDescription: {type: String,default:''}
+    workCompletedDescription: {type: String,default:''},
+    created:{type:Number,default:Date.now}
 });
