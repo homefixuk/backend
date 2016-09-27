@@ -12,9 +12,7 @@ module.exports = function (passport) {
         failureRedirect: 'login'
     }), function(req, res) {
         //console.log('JWT User',req.user);
-        var token = jwt.sign(req.user, "secret", {
-            expiresIn: 86400
-        });
+        var token = jwt.sign(req.user, "secret");
         res.json({ success: true, token: 'JWT ' + token });
     });
 
