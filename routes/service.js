@@ -282,7 +282,7 @@ router.get('/service/next', function (req, res, next) {
                     .populate({
                         path: 'service',
                         model: Service,
-                        populate: [{ path: 'serviceSet', model: ServiceSet }, { path: 'tradesman', model: Tradesman }]
+                        populate: [{ path: 'serviceSet', model: ServiceSet }, { path: 'tradesman', model: Tradesman },{ path: 'problem', model: Problem }]
                     })
                     .exec(function (err, timeslots) {
                         if (err) {
@@ -335,7 +335,7 @@ router.get('/service/current', function (req, res, next) {
                     .populate({
                         path: 'service',
                         model: Service,
-                        populate: [{ path: 'serviceSet', model: ServiceSet }, { path: 'tradesman', model: Tradesman }]
+                        populate: [{ path: 'serviceSet', model: ServiceSet }, { path: 'tradesman', model: Tradesman },{ path: 'problem', model: Problem }]
                     })
                     .exec(function (err, timeslots) {
                         if (err) {
