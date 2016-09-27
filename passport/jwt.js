@@ -7,8 +7,8 @@ module.exports = function(passport) {
     opts.jwtFromRequest = ExtractJwt.fromAuthHeader();
     opts.secretOrKey = "secret";
     passport.use(new JwtStrategy(opts, function(jwt_payload, done) {         
-        var userid = jwt_payload._doc._id
-        //console.log('Deserialized User',userid)
+        var userid = jwt_payload._doc._id;
+        //console.log('Deserialized User',userid);
         User.findOne({_id: userid}, function(err, user) {
             if (err) {
                 //console.log("Passport Error", err);

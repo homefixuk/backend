@@ -12,6 +12,7 @@ var CustomerProperty = require('../models/customerproperty');
 var ServiceSet = require('../models/serviceSet');
 var Service = require('../models/service');
 var Part = require('../models/part');
+var Timeslot = require('../models/timeslot');
 
 router.post('/services', function (req, res, next) {
 
@@ -203,7 +204,7 @@ router.get('/services', function (req, res, next) {
             if (tradesman) {
                 Service
                     .find({})
-                    .sort({'created': -1})
+                    .sort({ 'created': -1 })
                     .limit(parseInt(req.query.limit))
                     .populate({
                         path: 'tradesman',
@@ -245,6 +246,111 @@ router.get('/services', function (req, res, next) {
                         }
 
                     });
+            } else {
+                var err = new Error('Requested Tradesman could not be found');
+                err.status = 500;
+                next(err);
+            }
+        }
+    });
+});
+
+router.get('/service/next', function (req, res, next) {
+    Tradesman.findOne({
+        user: req.user
+    }).exec(function (err, tradesman) {
+        if (err) {
+            var err = new Error('Error encounter while getting the logged in Tradesman');
+            err.message = err.message;
+            err.status = 500;
+            next(err);
+        }
+        else {
+            if (tradesman) {
+                var now = Date.now();
+                Timeslot
+                    .find({
+                        tradesman: tradesman,
+                        start: { $gt: now }
+                    })
+                    .sort('start')
+                    .populate({
+                        path: 'tradesman',
+                        model: Tradesman,
+                        populate: { path: 'user', model: User }
+                    })
+                    .populate({
+                        path: 'service',
+                        model: Service,
+                        populate: [{ path: 'serviceSet', model: ServiceSet }, { path: 'tradesman', model: Tradesman }]
+                    })
+                    .exec(function (err, timeslots) {
+                        if (err) {
+                            var err = new Error('Timeslots could not be found for this Tradesman');
+                            err.status = 500;
+                            next(err);
+                        } else {
+                            if(timeslots.length >0) {
+                                res.json(timeslots[0]);
+                            }else{
+                                res.json({message:"No timeslots with start time greater than " + now + " found for this tradesman"});
+                            }
+                        }
+                    });
+
+            } else {
+                var err = new Error('Requested Tradesman could not be found');
+                err.status = 500;
+                next(err);
+            }
+        }
+    });
+});
+
+router.get('/service/current', function (req, res, next) {
+    Tradesman.findOne({
+        user: req.user
+    }).exec(function (err, tradesman) {
+        if (err) {
+            var err = new Error('Error encounter while getting the logged in Tradesman');
+            err.message = err.message;
+            err.status = 500;
+            next(err);
+        }
+        else {
+            if (tradesman) {
+                var now = Date.now();
+                Timeslot
+                    .find({
+                        tradesman: tradesman,
+                        start: { $lt: now  },
+                        end: { $gt: now }
+                    })
+                    .sort('start')
+                    .populate({
+                        path: 'tradesman',
+                        model: Tradesman,
+                        populate: { path: 'user', model: User }
+                    })
+                    .populate({
+                        path: 'service',
+                        model: Service,
+                        populate: [{ path: 'serviceSet', model: ServiceSet }, { path: 'tradesman', model: Tradesman }]
+                    })
+                    .exec(function (err, timeslots) {
+                        if (err) {
+                            var err = new Error('Timeslots could not be found for this Tradesman');
+                            err.status = 500;
+                            next(err);
+                        } else {
+                            if(timeslots.length >0) {
+                                res.json(timeslots[0]);
+                            }else{
+                                res.json({message:"No timeslots with start time less than " + now + " and end time greater than " + now + " found for this tradesman"});
+                            }
+                        }
+                    });
+
             } else {
                 var err = new Error('Requested Tradesman could not be found');
                 err.status = 500;
@@ -331,95 +437,6 @@ router.delete('/service/:id', function (req, res, next) {
     });
 });
 
-router.get('/service/:id/problem', function (req, res, next) {
-    Service.findOne({
-        _id: req.params.id
-    }).exec(function (err, service) {
-        if (err) {
-            var nErr = new Error('Error getting requested Service');
-            nErr.err = err;
-            nErr.status = 500;
-            next(nErr);
-        } else {
-            if (service) {
-                Problem.findOne({ _id: service.problem }).exec(function (err, problem) {
-                    if (err) {
-                        var nErr = new Error('Error getting Problem for requested Service');
-                        nErr.err = err;
-                        nErr.status = 500;
-                        next(nErr);
-                    } else {
-                        res.json(problem);
-                    }
-                })
-            } else {
-                var nErr = new Error('Requested Service could not be found');
-                nErr.status = 500;
-                next(nErr);
-            }
-        }
-    });
-});
 
-router.post('/service/:id/problem/parts/:id', function (req, res, next) {
-
-    Service.findOne({
-        _id: req.params.id
-    }).exec(function (err, service) {
-        if (err) {
-            var nErr = new Error('Error getting requested Service');
-            nErr.err = err;
-            nErr.status = 500;
-            next(nErr);
-        } else {
-            if (service) {
-                Problem.findOne({ _id: service.problem }).exec(function (err, problem) {
-                    if (err) {
-                        var nErr = new Error('Error getting Problem for requested Service');
-                        nErr.err = err;
-                        nErr.status = 500;
-                        next(nErr);
-                    } else {
-
-                        Part.findOne({ _id: req.params.id }).exec(function (err, part) {
-                            if (err) {
-                                var nErr = new Error('Error getting requested Part.');
-                                nErr.status = 500;
-                                next(nErr);
-                            } else {
-                                if (part) {
-                                    problem.potentialParts.push(part);
-                                    problem.save(function (err, problem) {
-                                        if (err) {
-                                            var nErr = new Error('Error adding parts to Problem');
-                                            nErr.err = err;
-                                            nErr.status = 500;
-                                            next(nErr);
-
-                                        } else {
-                                            res.json({
-                                                success: true,
-                                                message: 'Parts added to the problem',
-                                                problem: problem._id
-                                            });
-                                        }
-                                    });
-                                } else {
-                                    var nErr = new Error('Requested Part could not be found');
-                                    nErr.status = 500;
-                                    next(nErr);
-                                }
-                            }
-                        });
-                    }
-                });
-            } else {
-                var nErr = new Error('Requested Service could not be found');
-                nErr.status = 500;
-                next(nErr);
-            }
-        }
-    });
-});
 
 module.exports = router;
