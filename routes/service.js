@@ -206,6 +206,7 @@ router.get('/services', function (req, res, next) {
                     .find({})
                     .sort({ 'created': -1 })
                     .limit(parseInt(req.query.limit))
+                    .skip(parseInt(req.query.skip))
                     .populate({
                         path: 'tradesman',
                         model: Tradesman,
