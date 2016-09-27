@@ -163,7 +163,14 @@ router.post('/services', function (req, res, next) {
                                 ServiceSet.populate(service.serviceSet, { path: 'customerProperty' }, function (err, obj) {
                                     CustomerProperty.populate(obj.customerProperty, { path: 'customer property' }, function (err, custProp) {
                                         Customer.populate(custProp.customer, { path: 'user' }, function (err, customer) {
-                                            res.json(service);
+
+                                            Tradesman.populate(service.tradesman, { path: 'user currentLocation' }, function (err, tradesman) {
+                                                if (err) {
+                                                    next(err);
+                                                } else {
+                                                    res.json(service);
+                                                }
+                                            });
                                         });
                                     });
                                 })
@@ -182,7 +189,23 @@ router.post('/services', function (req, res, next) {
 });
 
 router.get('/services', function (req, res, next) {
-    Service.find({}).exec(function (err, services) {
+    Service
+        .find({})
+        .populate({
+            path: 'tradesman',
+            model: Tradesman,
+            populate: { path: 'user', model: User }
+        })
+        .populate({
+            path: 'problem',
+            model: Problem
+        })
+        .populate({
+            path: 'serviceSet',
+            model: ServiceSet,
+            populate: { path: 'customerProperty', model: CustomerProperty,populate:[{path:'property',model: Property},{path:'customer', model:Customer,populate:{path:'user',model:User}}] }
+        })
+        .exec(function (err, services) {
 
         if (err) {
             var newErr = new Error('Error encountered while getting services.');
