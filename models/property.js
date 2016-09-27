@@ -5,9 +5,9 @@ module.exports = mongoose.model('Property', {
     addressLine3: {type: String, default: ""},
     country: {type: String, default: ""},
     notes: {type: String, default: ""},
-    numberBedrooms: {type: Number, default: ""},
-    numberPropertyIssues: {type: Number, default: ""},
-    numberTennants: {type: Number, default: ""},
+    numberBedrooms: {type: Number, default: 0},
+    numberPropertyIssues: {type: Number, default: 0},
+    numberTennants: {type: Number, default: 0},
     phone: {type: String, default: ""},
     postcode: {type: String, default: ""},
     properties: {type: String, default: ""}
