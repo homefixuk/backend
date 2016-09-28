@@ -59,10 +59,13 @@ var properties = require('./routes/customerproperty');
 var charge = require('./routes/charge');
 var payment = require('./routes/payment');
 var tradesmanLocation = require('./routes/tradesmanLocation');
+var ui_login = require('./routes/ui_login');
 
 app.use(apiclient);
 app.use(signup);
 app.use(login);
+app.use(ui_login);
+
 app.use(passport.authenticate('jwt'),tradesman);
 app.use(passport.authenticate('jwt'),tradesmanLocation);
 app.use(passport.authenticate('jwt'),services);
@@ -70,6 +73,7 @@ app.use(passport.authenticate('jwt'),timeslots);
 app.use(passport.authenticate('jwt'),properties);
 app.use(passport.authenticate('jwt'),parts);
 app.use(passport.authenticate('jwt'),charge);
+
 
 
 
