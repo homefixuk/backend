@@ -283,8 +283,24 @@ router.get('/service/next', function (req, res, next) {
                     .populate({
                         path: 'service',
                         model: Service,
-                        populate: [{ path: 'serviceSet', model: ServiceSet,populate:{path:'customerProperty',model:CustomerProperty,populate:[{path:'customer',model:Customer,populate:{path:'user',model:User}},{path:'property',model:Property}]} },
-                            { path: 'tradesman', model: Tradesman,populate:{path:'user',model:User} },{ path: 'problem', model: Problem }]
+                        populate: [{
+                            path: 'serviceSet',
+                            model: ServiceSet,
+                            populate: {
+                                path: 'customerProperty',
+                                model: CustomerProperty,
+                                populate: [{
+                                    path: 'customer',
+                                    model: Customer,
+                                    populate: { path: 'user', model: User }
+                                }, { path: 'property', model: Property }]
+                            }
+                        },
+                            {
+                                path: 'tradesman',
+                                model: Tradesman,
+                                populate: { path: 'user', model: User }
+                            }, { path: 'problem', model: Problem }]
                     })
                     .exec(function (err, timeslots) {
                         if (err) {
@@ -292,10 +308,10 @@ router.get('/service/next', function (req, res, next) {
                             err.status = 500;
                             next(err);
                         } else {
-                            if(timeslots.length >0) {
+                            if (timeslots.length > 0) {
                                 res.json(timeslots[0]);
-                            }else{
-                                res.json({message:"No timeslots with start time greater than " + now + " found for this tradesman"});
+                            } else {
+                                res.json({ message: "No timeslots with start time greater than " + now + " found for this tradesman" });
                             }
                         }
                     });
@@ -325,7 +341,7 @@ router.get('/service/current', function (req, res, next) {
                 Timeslot
                     .find({
                         tradesman: tradesman,
-                        start: { $lt: now  },
+                        start: { $lt: now },
                         end: { $gt: now }
                     })
                     .sort('start')
@@ -337,8 +353,24 @@ router.get('/service/current', function (req, res, next) {
                     .populate({
                         path: 'service',
                         model: Service,
-                        populate: [{ path: 'serviceSet', model: ServiceSet,populate:{path:'customerProperty',model:CustomerProperty,populate:[{path:'customer',model:Customer,populate:{path:'user',model:User}},{path:'property',model:Property}]} },
-                            { path: 'tradesman', model: Tradesman,populate:{path:'user',model:User}},{ path: 'problem', model: Problem }]
+                        populate: [{
+                            path: 'serviceSet',
+                            model: ServiceSet,
+                            populate: {
+                                path: 'customerProperty',
+                                model: CustomerProperty,
+                                populate: [{
+                                    path: 'customer',
+                                    model: Customer,
+                                    populate: { path: 'user', model: User }
+                                }, { path: 'property', model: Property }]
+                            }
+                        },
+                            {
+                                path: 'tradesman',
+                                model: Tradesman,
+                                populate: { path: 'user', model: User }
+                            }, { path: 'problem', model: Problem }]
                     })
                     .exec(function (err, timeslots) {
                         if (err) {
@@ -346,10 +378,10 @@ router.get('/service/current', function (req, res, next) {
                             err.status = 500;
                             next(err);
                         } else {
-                            if(timeslots.length >0) {
+                            if (timeslots.length > 0) {
                                 res.json(timeslots[0]);
-                            }else{
-                                res.json({message:"No timeslots with start time less than " + now + " and end time greater than " + now + " found for this tradesman"});
+                            } else {
+                                res.json({ message: "No timeslots with start time less than " + now + " and end time greater than " + now + " found for this tradesman" });
                             }
                         }
                     });
@@ -396,14 +428,33 @@ router.get('/service/:id', function (req, res, next) {
 router.patch('/service/:id', function (req, res, next) {
     Service.findOneAndUpdate({
         _id: req.params.id
-    }, req.query, function (err, service) {
+    }, req.query, { new: true }, function (err, service) {
         if (err) {
             var newErr = new Error('Error encountered while updating the Service');
             newErr.error = err;
             newErr.status = 500;
             next(newErr);
         } else {
-            res.send(service)
+            if (service) {
+                Service.populate(service, { path: 'serviceSet', model: ServiceSet }, function (err, obj1) {
+                    ServiceSet.populate(service.serviceSet, { path: 'customerProperty payments charges' }, function (err, obj) {
+                        if (err)
+                            next(err);
+                        else {
+                            CustomerProperty.populate(obj.customerProperty, { path: 'customer property' }, function (err, custProp) {
+                                Customer.populate(custProp.customer, { path: 'user' }, function (err, customer) {
+                                res.json(service);
+                                });
+                            });
+                        }
+                    });
+                });
+
+            } else {
+                var newErr = new Error('Could not get the requested Service');
+                newErr.status = 500;
+                next(newErr);
+            }
         }
     });
 });
@@ -439,7 +490,5 @@ router.delete('/service/:id', function (req, res, next) {
         }
     });
 });
-
-
 
 module.exports = router;
