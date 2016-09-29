@@ -32,7 +32,7 @@ router.get('/tradesman/timeslots', function (req, res, next) {
                 }).populate({
                     path: 'service',
                     model: Service,
-                    populate: [{ path: 'serviceSet', model: ServiceSet }, { path: 'tradesman', model: Tradesman }]
+                    populate: [{ path: 'problem', model: Problem }, { path: 'serviceSet', model: ServiceSet,populate:{path:'customerProperty', model:CustomerProperty, populate:[{path:'customer',model:Customer, populate:{path:'user', model:User}},{path:'property', model: Property}]} }, { path: 'tradesman', model: Tradesman , populate:{ path: 'user', model: User }}]
                 }).exec(function (err, timeslots) {
                     if (err) {
                         var err = new Error('Timeslots could not be found for this Tradesman');
