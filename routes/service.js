@@ -449,37 +449,46 @@ router.patch('/service/:id', function (req, res, next) {
         } else {
             if (service) {
 
-                Problem.findOneAndUpdate({_id:service.problem},req.query,function(err,prob){});
-                ServiceSet.findOneAndUpdate({_id:service.serviceSet},req.query,{new:true},function(err,ss){
-                    CustomerProperty.findOneAndUpdate({_id:ss.customerProperty},req.query,function(err,cProp){
-                        Property.findOneAndUpdate({_id:cProp.property},req.query,function(ee,prop){
-                            Service.populate(service,
-                                [{
-                                    path: 'serviceSet',
-                                    model: ServiceSet,
-                                    populate: [{
-                                        path: 'customerProperty',
-                                        model: CustomerProperty,
-                                        populate: [{path: 'customer', model: Customer}, {path: 'property', model: Property}]
-                                    }, {path: 'payments', model: Payment}, {path: 'charge', mode: Charge}]
-                                },
-                                    {path: 'problem', model: Problem},
-                                    {
-                                        path: 'tradesman',
-                                        model: Tradesman,
-                                        populate: {path: 'user', model: User}
-                                    }], function (err, obj1) {
-                                    if (err) {
-                                        next(err);
-                                    }
-                                    else {
-                                        res.json(service);
-                                    }
-                                });
-                        });
-                    })
+                Problem.findOneAndUpdate({_id: service.problem}, req.query, function (err, prob) {
                 });
-                
+                ServiceSet.findOneAndUpdate({_id: service.serviceSet}, req.query, {new: true}, function (err, ss) {
+                    CustomerProperty.findOneAndUpdate({_id: ss.customerProperty}, req.query, function (err, cProp) {
+                        Property.findOneAndUpdate({_id: cProp.property}, req.query, function (ee, prop) {
+                            Customer.findOneAndUpdate({_id: cProp.customer}, req.query, function (err, cust) {
+                                User.findOneAndUpdate({_id: cust.user}, req.query, function (err, user) {
+                                    Service.populate(service,
+                                        [{
+                                            path: 'serviceSet',
+                                            model: ServiceSet,
+                                            populate: [{
+                                                path: 'customerProperty',
+                                                model: CustomerProperty,
+                                                populate: [{
+                                                    path: 'customer',
+                                                    model: Customer,
+                                                    populate: {path: 'user', model: User}
+                                                }, {path: 'property', model: Property}]
+                                            }, {path: 'payments', model: Payment}, {path: 'charge', mode: Charge}]
+                                        },
+                                            {path: 'problem', model: Problem},
+                                            {
+                                                path: 'tradesman',
+                                                model: Tradesman,
+                                                populate: {path: 'user', model: User}
+                                            }], function (err, obj1) {
+                                            if (err) {
+                                                next(err);
+                                            }
+                                            else {
+                                                res.json(service);
+                                            }
+                                        });
+                                });
+                            });
+                        })
+                    });
+                });
+
             } else {
                 var newErr = new Error('Error encountered while getting back the updated Service.');
                 newErr.status = 500;
