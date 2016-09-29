@@ -38,7 +38,7 @@ router.get('/tradesman/timeslots', function (req, res, next) {
                     populate: [{path: 'problem', model: Problem}, {
                         path: 'serviceSet',
                         model: ServiceSet,
-                        populate: {
+                        populate:[ {
                             path: 'customerProperty',
                             model: CustomerProperty,
                             populate: [{
@@ -46,7 +46,7 @@ router.get('/tradesman/timeslots', function (req, res, next) {
                                 model: Customer,
                                 populate: {path: 'user', model: User}
                             }, {path: 'property', model: Property}]
-                        }
+                        },{path:'charges',model:Charge},{path:'payments',model:Payment}]
                     }, {path: 'tradesman', model: Tradesman, populate: {path: 'user', model: User}}]
                 }).exec(function (err, timeslots) {
                     if (err) {
@@ -124,14 +124,14 @@ router.post('/tradesman/timeslot', function (req, res, next) {
                                             {
                                                 path: 'serviceSet',
                                                 model: ServiceSet,
-                                                populate: {
+                                                populate:[ {
                                                     path: 'customerProperty',
                                                     populate: [{path: 'property', model: Property}, {
                                                         path: 'customer',
                                                         model: Customer,
                                                         populate: {path: 'user', model: User}
                                                     }]
-                                                }
+                                                },{path:'charges',model:Charge},{path:'payments',model:Payment}]
                                             },
                                             {
                                                 path: 'tradesman',

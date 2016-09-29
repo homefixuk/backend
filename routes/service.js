@@ -163,20 +163,45 @@ router.post('/services', function (req, res, next) {
                             if (asynWaterfallErr) {
                                 next(asynWaterfallErr)
                             } else {
-                                ServiceSet.populate(service.serviceSet, {path: 'customerProperty'}, function (err, obj) {
-                                    CustomerProperty.populate(obj.customerProperty, {path: 'customer property'}, function (err, custProp) {
-                                        Customer.populate(custProp.customer, {path: 'user'}, function (err, customer) {
 
-                                            Tradesman.populate(service.tradesman, {path: 'user currentLocation'}, function (err, tradesman) {
-                                                if (err) {
-                                                    next(err);
-                                                } else {
-                                                    res.json(service);
-                                                }
-                                            });
-                                        });
+                                Service.findOne({_id: service.id})
+                                    .populate({
+                                        path: 'tradesman',
+                                        model: Tradesman,
+                                        populate: {path: 'user', model: User}
+                                    })
+                                    .populate({
+                                        path: 'problem',
+                                        model: Problem
+                                    })
+                                    .populate({
+                                        path: 'serviceSet',
+                                        model: ServiceSet,
+                                        populate: [{
+                                            path: 'customerProperty',
+                                            model: CustomerProperty,
+                                            populate: [{path: 'property', model: Property}, {
+                                                path: 'customer',
+                                                model: Customer,
+                                                populate: {path: 'user', model: User}
+                                            }]
+                                        },{path:'charges',model:Charge},{path:'payments',model:Payment}]
+                                    })
+                                    .exec(function (err, service) {
+                                        if (err) {
+                                            next(err);
+                                        } else {
+                                            if (service) {
+                                                res.json(service);
+                                            } else {
+                                                var newErr = new Error('Could not get the requested Service');
+                                                newErr.status = 500;
+                                                next(newErr);
+                                            }
+                                        }
+
                                     });
-                                })
+
                             }
                         });
 
@@ -288,7 +313,7 @@ router.get('/service/next', function (req, res, next) {
                         populate: [{
                             path: 'serviceSet',
                             model: ServiceSet,
-                            populate: {
+                            populate:[ {
                                 path: 'customerProperty',
                                 model: CustomerProperty,
                                 populate: [{
@@ -296,7 +321,7 @@ router.get('/service/next', function (req, res, next) {
                                     model: Customer,
                                     populate: {path: 'user', model: User}
                                 }, {path: 'property', model: Property}]
-                            }
+                            },{path:'charges',model:Charge},{path:'payments',model:Payment}]
                         },
                             {
                                 path: 'tradesman',
@@ -358,7 +383,7 @@ router.get('/service/current', function (req, res, next) {
                         populate: [{
                             path: 'serviceSet',
                             model: ServiceSet,
-                            populate: {
+                            populate: [{
                                 path: 'customerProperty',
                                 model: CustomerProperty,
                                 populate: [{
@@ -366,7 +391,7 @@ router.get('/service/current', function (req, res, next) {
                                     model: Customer,
                                     populate: {path: 'user', model: User}
                                 }, {path: 'property', model: Property}]
-                            }
+                            },{path:'charges',model:Charge},{path:'payments',model:Payment}]
                         },
                             {
                                 path: 'tradesman',
@@ -411,7 +436,7 @@ router.get('/service/:id', function (req, res, next) {
         .populate({
             path: 'serviceSet',
             model: ServiceSet,
-            populate: {
+            populate: [{
                 path: 'customerProperty',
                 model: CustomerProperty,
                 populate: [{path: 'property', model: Property}, {
@@ -419,7 +444,7 @@ router.get('/service/:id', function (req, res, next) {
                     model: Customer,
                     populate: {path: 'user', model: User}
                 }]
-            }
+            },{path:'charges',model:Charge},{path:'payments',model:Payment}]
         })
         .exec(function (err, service) {
             if (err) {
@@ -456,32 +481,42 @@ router.patch('/service/:id', function (req, res, next) {
                         Property.findOneAndUpdate({_id: cProp.property}, req.query, function (ee, prop) {
                             Customer.findOneAndUpdate({_id: cProp.customer}, req.query, function (err, cust) {
                                 User.findOneAndUpdate({_id: cust.user}, req.query, function (err, user) {
-                                    Service.populate(service,
-                                        [{
+                                    Service.findOne({_id: req.params.id})
+                                        .populate({
+                                            path: 'tradesman',
+                                            model: Tradesman,
+                                            populate: {path: 'user', model: User}
+                                        })
+                                        .populate({
+                                            path: 'problem',
+                                            model: Problem
+                                        })
+                                        .populate({
                                             path: 'serviceSet',
                                             model: ServiceSet,
                                             populate: [{
                                                 path: 'customerProperty',
                                                 model: CustomerProperty,
-                                                populate: [{
+                                                populate: [{path: 'property', model: Property}, {
                                                     path: 'customer',
                                                     model: Customer,
                                                     populate: {path: 'user', model: User}
-                                                }, {path: 'property', model: Property}]
-                                            }, {path: 'payments', model: Payment}, {path: 'charge', mode: Charge}]
-                                        },
-                                            {path: 'problem', model: Problem},
-                                            {
-                                                path: 'tradesman',
-                                                model: Tradesman,
-                                                populate: {path: 'user', model: User}
-                                            }], function (err, obj1) {
+                                                }]
+                                            },{path:'charges',model:Charge},{path:'payments',model:Payment}]
+                                        })
+                                        .exec(function (err, service) {
                                             if (err) {
                                                 next(err);
+                                            } else {
+                                                if (service) {
+                                                    res.json(service);
+                                                } else {
+                                                    var newErr = new Error('Could not get the requested Service');
+                                                    newErr.status = 500;
+                                                    next(newErr);
+                                                }
                                             }
-                                            else {
-                                                res.json(service);
-                                            }
+
                                         });
                                 });
                             });
