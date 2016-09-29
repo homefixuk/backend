@@ -2,9 +2,46 @@ var express = require('express');
 var router = express.Router();
 var async = require('async');
 var _ = require('underscore');
+
+var User = require('../models/user');
+var Tradesman = require('../models/tradesman');
 var Service = require('../models/service');
-var Charge = require('../models/charge');
 var ServiceSet = require('../models/serviceSet');
+var Customer = require('../models/customer');
+var Property = require('../models/property');
+var Problem = require('../models/problem');
+var CustomerProperty = require('../models/customerproperty');
+var Payment = require('../models/payment');
+var Charge = require('../models/charge');
+
+router.get('/charge/:id', function (req, res, next) {
+    Charge
+        .findOne({ _id: req.params.id })
+        .populate({
+            path: 'service',
+            model: Service,
+            populate: [{path: 'problem', model: Problem}, {
+                path: 'serviceSet',
+                model: ServiceSet,
+                populate:[ {
+                    path: 'customerProperty',
+                    model: CustomerProperty,
+                    populate: [{
+                        path: 'customer',
+                        model: Customer,
+                        populate: {path: 'user', model: User}
+                    }, {path: 'property', model: Property}]
+                },{path:'charges',model:Charge},{path:'payments',model:Payment}]
+            }, {path: 'tradesman', model: Tradesman, populate: {path: 'user', model: User}}]
+        })
+        .exec(function (err, charge) {
+        if (err) {
+            next(err)
+        } else {
+            res.json(charge)
+        }
+    })
+});
 
 router.post('/charge', function (req, res, next) {
 
@@ -22,7 +59,7 @@ router.post('/charge', function (req, res, next) {
 
         async.waterfall([
             function (callback) {
-                Service.findOne({_id: req.query.service}, function (err, service) {
+                Service.findOne({ _id: req.query.service }, function (err, service) {
                     if (err) {
                         callback(err);
                     } else {
@@ -48,7 +85,7 @@ router.post('/charge', function (req, res, next) {
                 })
             },
             function (charge, service, callback) {
-                ServiceSet.findOne({_id: service.serviceSet}, function (err, ss) {
+                ServiceSet.findOne({ _id: service.serviceSet }, function (err, ss) {
                     ss.charges.push(charge);
                     ss.save(function (err) {
                         if (err) callback(err);
@@ -58,37 +95,90 @@ router.post('/charge', function (req, res, next) {
                 });
             }
         ], function (err, charge) {
-            if (err) next(err);
-            else res.json(charge)
+            if (err){
+                next(err);
+            }
+            else{
+                Charge
+                    .findOne({ _id: charge._id })
+                    .populate({
+                        path: 'service',
+                        model: Service,
+                        populate: [{path: 'problem', model: Problem}, {
+                            path: 'serviceSet',
+                            model: ServiceSet,
+                            populate:[ {
+                                path: 'customerProperty',
+                                model: CustomerProperty,
+                                populate: [{
+                                    path: 'customer',
+                                    model: Customer,
+                                    populate: {path: 'user', model: User}
+                                }, {path: 'property', model: Property}]
+                            },{path:'charges',model:Charge},{path:'payments',model:Payment}]
+                        }, {path: 'tradesman', model: Tradesman, populate: {path: 'user', model: User}}]
+                    })
+                    .exec(function (err, charge) {
+                        if (err) {
+                            next(err)
+                        } else {
+                            res.json(charge)
+                        }
+                    })
+            }
         });
-
 
     }
 });
 
 router.patch('/charge/:id', function (req, res, next) {
-    Charge.findOneAndUpdate({_id: req.params.id}, req.query, {new: true}, function (err, charge) {
+    Charge.findOneAndUpdate({ _id: req.params.id }, req.query, { new: true }, function (err, charge) {
         if (err) {
             next(err)
         } else {
-            res.json(charge)
+            Charge
+                .findOne({ _id: charge._id })
+                .populate({
+                    path: 'service',
+                    model: Service,
+                    populate: [{path: 'problem', model: Problem}, {
+                        path: 'serviceSet',
+                        model: ServiceSet,
+                        populate:[ {
+                            path: 'customerProperty',
+                            model: CustomerProperty,
+                            populate: [{
+                                path: 'customer',
+                                model: Customer,
+                                populate: {path: 'user', model: User}
+                            }, {path: 'property', model: Property}]
+                        },{path:'charges',model:Charge},{path:'payments',model:Payment}]
+                    }, {path: 'tradesman', model: Tradesman, populate: {path: 'user', model: User}}]
+                })
+                .exec(function (err, charge) {
+                    if (err) {
+                        next(err)
+                    } else {
+                        res.json(charge)
+                    }
+                })
         }
     })
 });
 
 router.delete('/charge/:id', function (req, res, next) {
-    Charge.findOne({_id: req.params.id}).exec(function (err, charge) {
+    Charge.findOne({ _id: req.params.id }).exec(function (err, charge) {
         if (err) {
             var newErr = new Error('Error locating Charge');
             newErr.error = err;
             newErr.status = 500;
             next(newErr);
         } else {
-            Service.findOne({_id: charge.service}, function (err, service) {
+            Service.findOne({ _id: charge.service }, function (err, service) {
                 if (err) next(err);
                 else {
                     if (service) {
-                        ServiceSet.findOne({_id: service.serviceSet}, function (err, serviceSet) {
+                        ServiceSet.findOne({ _id: service.serviceSet }, function (err, serviceSet) {
                             if (err) next(err);
                             else {
                                 if (serviceSet) {
@@ -96,8 +186,8 @@ router.delete('/charge/:id', function (req, res, next) {
                                     serviceSet.save(function (err, resp) {
                                         if (err) next(err);
                                         else {
-                                            Charge.findOne({_id: req.params.id}).remove().exec(function (err) {
-                                                res.json({success: true, message: 'Charge Deleted'})
+                                            Charge.findOne({ _id: req.params.id }).remove().exec(function (err) {
+                                                res.json({ success: true, message: 'Charge Deleted' })
                                             });
                                         }
                                     })
