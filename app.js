@@ -73,6 +73,7 @@ app.use(passport.authenticate('jwt'),timeslots);
 app.use(passport.authenticate('jwt'),properties);
 app.use(passport.authenticate('jwt'),parts);
 app.use(passport.authenticate('jwt'),charge);
+app.use(passport.authenticate('jwt'),payment);
 
 
 
