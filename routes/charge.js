@@ -75,6 +75,7 @@ router.patch('/charge/:id', function (req, res, next) {
         }
     })
 });
+
 router.delete('/charge/:id', function (req, res, next) {
     Charge.findOne({_id: req.params.id}).exec(function (err, charge) {
         if (err) {

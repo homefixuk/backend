@@ -270,7 +270,7 @@ router.patch('/tradesman/timeslot/:id', function (req, res, next) {
                                                         }, {path: 'property', model: Property}]
                                                     },
                                                         {path: 'payments', model: Payment}, {
-                                                            path: 'charge',
+                                                            path: 'charges',
                                                             mode: Charge
                                                         }]
                                                     },
