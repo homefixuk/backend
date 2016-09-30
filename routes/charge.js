@@ -16,14 +16,14 @@ var Charge = require('../models/charge');
 
 router.get('/charge/:id', function (req, res, next) {
     Charge
-        .findOne({ _id: req.params.id })
+        .findOne({_id: req.params.id})
         .populate({
             path: 'service',
             model: Service,
             populate: [{path: 'problem', model: Problem}, {
                 path: 'serviceSet',
                 model: ServiceSet,
-                populate:[ {
+                populate: [{
                     path: 'customerProperty',
                     model: CustomerProperty,
                     populate: [{
@@ -31,16 +31,16 @@ router.get('/charge/:id', function (req, res, next) {
                         model: Customer,
                         populate: {path: 'user', model: User}
                     }, {path: 'property', model: Property}]
-                },{path:'charges',model:Charge},{path:'payments',model:Payment}]
+                }, {path: 'charges', model: Charge}, {path: 'payments', model: Payment}]
             }, {path: 'tradesman', model: Tradesman, populate: {path: 'user', model: User}}]
         })
         .exec(function (err, charge) {
-        if (err) {
-            next(err)
-        } else {
-            res.json(charge)
-        }
-    })
+            if (err) {
+                next(err)
+            } else {
+                res.json(charge)
+            }
+        })
 });
 
 router.post('/charge', function (req, res, next) {
@@ -59,7 +59,7 @@ router.post('/charge', function (req, res, next) {
 
         async.waterfall([
             function (callback) {
-                Service.findOne({ _id: req.query.service }, function (err, service) {
+                Service.findOne({_id: req.query.service}, function (err, service) {
                     if (err) {
                         callback(err);
                     } else {
@@ -85,29 +85,39 @@ router.post('/charge', function (req, res, next) {
                 })
             },
             function (charge, service, callback) {
-                ServiceSet.findOne({ _id: service.serviceSet }, function (err, ss) {
+                ServiceSet.findOne({_id: service.serviceSet}, function (err, ss) {
+                    ss.totalCost = charge.amount;
                     ss.charges.push(charge);
                     ss.save(function (err) {
                         if (err) callback(err);
-                        else callback(null, charge);
-                    })
+                        else {
+                            service.actualWorkCost = service.actualWorkCost + req.query.amount;
+                            service.save(function (err, service) {
+                                if (err) {
+                                    callback(err)
+                                } else {
+                                    callback(null, charge);
+                                }
+                            });
 
+                        }
+                    })
                 });
             }
         ], function (err, charge) {
-            if (err){
+            if (err) {
                 next(err);
             }
-            else{
+            else {
                 Charge
-                    .findOne({ _id: charge._id })
+                    .findOne({_id: charge._id})
                     .populate({
                         path: 'service',
                         model: Service,
                         populate: [{path: 'problem', model: Problem}, {
                             path: 'serviceSet',
                             model: ServiceSet,
-                            populate:[ {
+                            populate: [{
                                 path: 'customerProperty',
                                 model: CustomerProperty,
                                 populate: [{
@@ -115,7 +125,7 @@ router.post('/charge', function (req, res, next) {
                                     model: Customer,
                                     populate: {path: 'user', model: User}
                                 }, {path: 'property', model: Property}]
-                            },{path:'charges',model:Charge},{path:'payments',model:Payment}]
+                            }, {path: 'charges', model: Charge}, {path: 'payments', model: Payment}]
                         }, {path: 'tradesman', model: Tradesman, populate: {path: 'user', model: User}}]
                     })
                     .exec(function (err, charge) {
@@ -132,19 +142,33 @@ router.post('/charge', function (req, res, next) {
 });
 
 router.patch('/charge/:id', function (req, res, next) {
-    Charge.findOneAndUpdate({ _id: req.params.id }, req.query, { new: true }, function (err, charge) {
+
+    Charge.findOneAndUpdate({_id: req.params.id}, req.query, {new: false}, function (err, charge) {
         if (err) {
             next(err)
         } else {
+
+            if (typeof  req.query.amount != 'undefined') {
+                var old_amount = charge.amount;
+                var new_amount = parseInt(req.query.amount);
+                Service.findOne({_id: charge.service}, function (err, service) {
+                    ServiceSet.findOne({_id: service.serviceSet}, function (err, ss) {
+                        ss.totalCost = ss.totalCost - old_amount + new_amount;
+                        ss.save(function (err, ss) {
+                        })
+                    })
+                })
+            }
+
             Charge
-                .findOne({ _id: charge._id })
+                .findOne({_id: charge._id})
                 .populate({
                     path: 'service',
                     model: Service,
                     populate: [{path: 'problem', model: Problem}, {
                         path: 'serviceSet',
                         model: ServiceSet,
-                        populate:[ {
+                        populate: [{
                             path: 'customerProperty',
                             model: CustomerProperty,
                             populate: [{
@@ -152,7 +176,7 @@ router.patch('/charge/:id', function (req, res, next) {
                                 model: Customer,
                                 populate: {path: 'user', model: User}
                             }, {path: 'property', model: Property}]
-                        },{path:'charges',model:Charge},{path:'payments',model:Payment}]
+                        }, {path: 'charges', model: Charge}, {path: 'payments', model: Payment}]
                     }, {path: 'tradesman', model: Tradesman, populate: {path: 'user', model: User}}]
                 })
                 .exec(function (err, charge) {
@@ -167,27 +191,28 @@ router.patch('/charge/:id', function (req, res, next) {
 });
 
 router.delete('/charge/:id', function (req, res, next) {
-    Charge.findOne({ _id: req.params.id }).exec(function (err, charge) {
+    Charge.findOne({_id: req.params.id}).exec(function (err, charge) {
         if (err) {
             var newErr = new Error('Error locating Charge');
             newErr.error = err;
             newErr.status = 500;
             next(newErr);
         } else {
-            Service.findOne({ _id: charge.service }, function (err, service) {
+            Service.findOne({_id: charge.service}, function (err, service) {
                 if (err) next(err);
                 else {
                     if (service) {
-                        ServiceSet.findOne({ _id: service.serviceSet }, function (err, serviceSet) {
+                        ServiceSet.findOne({_id: service.serviceSet}, function (err, serviceSet) {
                             if (err) next(err);
                             else {
                                 if (serviceSet) {
+                                    serviceSet.totalCost = serviceSet.totalCost - charge.amount;
                                     serviceSet.charges = _.without(serviceSet.charges, req.params.id);
                                     serviceSet.save(function (err, resp) {
                                         if (err) next(err);
                                         else {
-                                            Charge.findOne({ _id: req.params.id }).remove().exec(function (err) {
-                                                res.json({ success: true, message: 'Charge Deleted' })
+                                            Charge.findOne({_id: req.params.id}).remove().exec(function (err) {
+                                                res.json({success: true, message: 'Charge Deleted'})
                                             });
                                         }
                                     })

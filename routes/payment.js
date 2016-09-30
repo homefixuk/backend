@@ -13,7 +13,7 @@ var Charge = require('../models/charge');
 
 router.get('/payment/:id', function (req, res, next) {
     Payment
-        .findOne({ _id: req.params.id })
+        .findOne({_id: req.params.id})
         .populate({
             path: 'serviceSet',
             model: ServiceSet,
@@ -23,9 +23,9 @@ router.get('/payment/:id', function (req, res, next) {
                 populate: [{
                     path: 'customer',
                     model: Customer,
-                    populate: { path: 'user', model: User }
-                }, { path: 'property', model: Property }]
-            }, { path: 'charges', model: Charge }, { path: 'payments', model: Payment }]
+                    populate: {path: 'user', model: User}
+                }, {path: 'property', model: Property}]
+            }, {path: 'charges', model: Charge}, {path: 'payments', model: Payment}]
         })
         .exec(function (err, payment) {
             if (err) {
@@ -43,7 +43,7 @@ router.post('/payment', function (req, res, next) {
     if (validationError) {
         next(validationError);
     } else {
-        ServiceSet.findOne({ _id: req.query.serviceSet }, function (err, serviceSet) {
+        ServiceSet.findOne({_id: req.query.serviceSet}, function (err, serviceSet) {
             if (err) {
                 next(err);
             } else {
@@ -53,10 +53,11 @@ router.post('/payment', function (req, res, next) {
                     newPayment.save(function (err, payment) {
                         if (err) next(err);
                         else {
+                            serviceSet.amountPaid = serviceSet.amountPaid + payment.amount;
                             serviceSet.payments.push(payment._id);
                             serviceSet.save(function (err, ss) {
                                 Payment
-                                    .findOne({ _id: payment._id })
+                                    .findOne({_id: payment._id})
                                     .populate({
                                         path: 'serviceSet',
                                         model: ServiceSet,
@@ -66,9 +67,9 @@ router.post('/payment', function (req, res, next) {
                                             populate: [{
                                                 path: 'customer',
                                                 model: Customer,
-                                                populate: { path: 'user', model: User }
-                                            }, { path: 'property', model: Property }]
-                                        },{path:'charges',model:Charge},{path:'payments',model:Payment}]
+                                                populate: {path: 'user', model: User}
+                                            }, {path: 'property', model: Property}]
+                                        }, {path: 'charges', model: Charge}, {path: 'payments', model: Payment}]
                                     })
                                     .exec(function (err, payment) {
                                         if (err) {
@@ -92,13 +93,24 @@ router.post('/payment', function (req, res, next) {
 });
 
 router.patch('/payment/:id', function (req, res, next) {
-    Payment.findOneAndUpdate({ _id: req.params.id }, req.query, { new: true }, function (err, payment) {
+    Payment.findOneAndUpdate({_id: req.params.id}, req.query, {new: false}, function (err, payment) {
         if (err) {
             next(err)
         } else {
 
+            if (typeof  req.query.amount != 'undefined') {
+                var old_amount = payment.amount;
+                var new_amount = parseInt(req.query.amount);
+                ServiceSet.findOne({_id: payment.serviceSet}, function (err, ss) {
+                    ss.amountPaid = ss.amountPaid - old_amount + new_amount;
+                    ss.save(function (err, ss) {
+                    })
+                })
+            }
+
+
             Payment
-                .findOne({ _id: req.params.id })
+                .findOne({_id: req.params.id})
                 .populate({
                     path: 'serviceSet',
                     model: ServiceSet,
@@ -108,9 +120,9 @@ router.patch('/payment/:id', function (req, res, next) {
                         populate: [{
                             path: 'customer',
                             model: Customer,
-                            populate: { path: 'user', model: User }
-                        }, { path: 'property', model: Property }]
-                    }, { path: 'charges', model: Charge }, { path: 'payments', model: Payment }]
+                            populate: {path: 'user', model: User}
+                        }, {path: 'property', model: Property}]
+                    }, {path: 'charges', model: Charge}, {path: 'payments', model: Payment}]
                 })
                 .exec(function (err, payment) {
                     if (err) {
@@ -124,23 +136,24 @@ router.patch('/payment/:id', function (req, res, next) {
 });
 
 router.delete('/payment/:id', function (req, res, next) {
-    Payment.findOne({ _id: req.params.id }).exec(function (err, payment) {
+    Payment.findOne({_id: req.params.id}).exec(function (err, payment) {
         if (err) {
             var newErr = new Error('Error locating Payment');
             newErr.error = err;
             newErr.status = 500;
             next(newErr);
         } else {
-            ServiceSet.findOne({ _id: payment.serviceSet }, function (err, serviceSet) {
+            ServiceSet.findOne({_id: payment.serviceSet}, function (err, serviceSet) {
                 if (err) next(err);
                 else {
                     if (serviceSet) {
+                        serviceSet.amountPaid = serviceSet.amountPaid - payment.amount
                         serviceSet.payments = _.without(serviceSet.payments, req.params.id);
                         serviceSet.save(function (err, resp) {
                             if (err) next(err);
                             else {
-                                Payment.findOne({ _id: req.params.id }).remove().exec(function (err) {
-                                    res.json({ success: true, message: 'Payment Deleted' })
+                                Payment.findOne({_id: req.params.id}).remove().exec(function (err) {
+                                    res.json({success: true, message: 'Payment Deleted'})
                                 });
                             }
                         })
