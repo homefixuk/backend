@@ -477,10 +477,10 @@ router.patch('/service/:id', function (req, res, next) {
                 Problem.findOneAndUpdate({_id: service.problem}, req.query, function (err, prob) {
                 });
                 ServiceSet.findOneAndUpdate({_id: service.serviceSet}, req.query, {new: true}, function (err, ss) {
-                    CustomerProperty.findOneAndUpdate({_id: ss.customerProperty}, req.query, function (err, cProp) {
+                    CustomerProperty.findOneAndUpdate({_id: ss.customerProperty}, {type:req.query.customerPropertyRelationship}, function (err, cProp) {
                         Property.findOneAndUpdate({_id: cProp.property}, req.query, function (ee, prop) {
                             Customer.findOneAndUpdate({_id: cProp.customer}, req.query, function (err, cust) {
-                                User.findOneAndUpdate({_id: cust.user}, req.query, function (err, user) {
+                                User.findOneAndUpdate({_id: cust.user}, {firstName:req.query.customerName,email:req.query.customerEmail,mobile:req.query.customerPhone}, function (err, user) {
                                     Service.findOne({_id: req.params.id})
                                         .populate({
                                             path: 'tradesman',
