@@ -87,6 +87,7 @@ router.post('/charge', function (req, res, next) {
             function (charge, service, callback) {
                 ServiceSet.findOne({ _id: service.serviceSet }, function (err, ss) {
                     ss.charges.push(charge);
+                    ss.totalCost = ss.totalCost + charge.amount;
                     ss.save(function (err) {
                         if (err) callback(err);
                         else callback(null, charge);
@@ -132,10 +133,34 @@ router.post('/charge', function (req, res, next) {
 });
 
 router.patch('/charge/:id', function (req, res, next) {
-    Charge.findOneAndUpdate({ _id: req.params.id }, req.query, { new: true }, function (err, charge) {
+    
+    
+    
+    Charge.findOneAndUpdate({ _id: req.params.id }, req.query, { new: false }, function (err, charge) {
         if (err) {
             next(err)
         } else {
+            
+            if(charge){
+                if(req.query.amount)
+
+                Service.findOne({ _id: charge.service }, function (err, service) {
+                    
+                    if(service){
+
+                        ServiceSet.findOne({ _id: service.serviceSet }, function (err, ss) {
+                            
+                            ss
+                        });
+                        
+                    }
+                    
+                    
+                });
+                
+            }
+            
+            
             Charge
                 .findOne({ _id: charge._id })
                 .populate({
@@ -182,6 +207,7 @@ router.delete('/charge/:id', function (req, res, next) {
                             if (err) next(err);
                             else {
                                 if (serviceSet) {
+                                    serviceSet.totalCost = serviceSet.totalCost - charge.amount;
                                     serviceSet.charges = _.without(serviceSet.charges, req.params.id);
                                     serviceSet.save(function (err, resp) {
                                         if (err) next(err);
