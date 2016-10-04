@@ -297,9 +297,21 @@ router.patch('/tradesman/timeslot/:id', function (req, res, next) {
                         });
 
                     } else {
-                        var newErr = new Error('Error encountered while getting back the updated Service.');
-                        newErr.status = 500;
-                        next(newErr);
+                        Timeslot.findOne({
+                            _id: req.params.id
+                        }).populate({
+                            path: 'tradesman',
+                            model: Tradesman,
+                            populate: { path: 'user', model: User }
+                        }).exec(function (err, timeslots) {
+                            if (err) {
+                                var err = new Error('Timeslots could not be found for this Tradesman');
+                                err.status = 500;
+                                next(err);
+                            } else {
+                                res.json(timeslots);
+                            }
+                        });
                     }
 
                 });
